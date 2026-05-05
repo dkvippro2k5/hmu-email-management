@@ -1,0 +1,20 @@
+# Maven
+target/
+*.war
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# IDE (Eclipse/IntelliJ/VS Code)
+.idea/
+*.iml
+.vscode/
+.settings/
+.classpath
+.project
+.factorypath
+
+# OS generated files
+.DS_Store
+Thumbs.db
