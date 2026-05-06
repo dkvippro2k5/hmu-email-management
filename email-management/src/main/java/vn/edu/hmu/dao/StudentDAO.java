@@ -157,40 +157,55 @@ public class StudentDAO {
         }
     }
 
-    public List<EmailAccount> searchAccounts(String keyword) {
+    public List<EmailAccount> searchAccounts(String keyword, int status) {
         List<EmailAccount> accountList = new ArrayList<>();
-        String sql = "SELECT e.email_address, s.student_id, s.full_name, e.status, e.activation_date " +
-                    "FROM students s " +
-                    "JOIN email_accounts e ON s.student_id = e.student_id " +
-                    "WHERE s.student_id LIKE ? OR s.full_name LIKE ? " +
-                    "ORDER BY e.activation_date DESC";
+        
+        // 1. Khởi tạo câu SQL gốc với StringBuilder (chỉ tìm kiếm từ khóa)
+        StringBuilder sql = new StringBuilder(
+            "SELECT e.email_address, s.student_id, s.full_name, e.status, e.activation_date " +
+            "FROM students s " +
+            "JOIN email_accounts e ON s.student_id = e.student_id " +
+            "WHERE (s.student_id LIKE ? OR s.full_name LIKE ?) "
+        );
+        
+        // 2. Nếu có lọc trạng thái (!= -1), mới nối thêm điều kiện AND vào SQL
+        if (status != -1) {
+            sql.append("AND e.status = ? ");
+        }
+        
+        // 3. Chốt đuôi sắp xếp
+        sql.append("ORDER BY e.activation_date DESC");
         
         try (Connection conn = DBConnection.getConnection();
-            PreparedStatement ps = conn.prepareStatement(sql)) {
+            PreparedStatement ps = conn.prepareStatement(sql.toString())) {
                 
-                // Thêm dấu % vào keyword để tìm kiếm gần đúng (ví dụ: "Doanh" sẽ tìm được "Đỗ Đại Doanh")
-                String searchPattern = "%" + keyword + "%";
-                ps.setString(1, searchPattern);
-                ps.setString(2, searchPattern);
-
-                ResultSet rs = ps.executeQuery();
-                while(rs.next()) {
-                    EmailAccount acc = new EmailAccount();
-                    // Mapping dữ liệu từ ResultSet vào EmailAccount (tương tự hàm getAllAccounts)
-                    acc.setEmailAddress(rs.getString("email_address"));
-                    acc.setStudentId(rs.getString("student_id"));
-                    acc.setStudentName(rs.getString("full_name"));
-                    acc.setStatus(rs.getInt("status"));
-                    acc.setActivationDate(rs.getDate("activation_date"));
-
-                    accountList.add(acc);
-                }
-
-            } catch (Exception e) {
-                e.printStackTrace();
+            String searchPattern = "%" + keyword + "%";
+            ps.setString(1, searchPattern);
+            ps.setString(2, searchPattern);
+            
+            // 4. Chỉ truyền tham số trạng thái vào dấu ? thứ 3 nếu có nối chuỗi
+            if (status != -1) {
+                ps.setInt(3, status);
             }
+
+            ResultSet rs = ps.executeQuery();
+            while(rs.next()) {
+                EmailAccount acc = new EmailAccount();
+                acc.setEmailAddress(rs.getString("email_address"));
+                acc.setStudentId(rs.getString("student_id"));
+                acc.setStudentName(rs.getString("full_name"));
+                acc.setStatus(rs.getInt("status"));
+                acc.setActivationDate(rs.getDate("activation_date"));
+
+                accountList.add(acc);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         return accountList;
     }
+    
 
     // FR-02.2 & FR-02.3: Thực thi tạm khóa và lưu số quyết định
     public boolean suspendAccount(String studentId, String decisionNumber) {

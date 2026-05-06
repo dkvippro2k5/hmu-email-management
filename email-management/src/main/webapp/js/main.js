@@ -43,9 +43,10 @@ function showToast(message) {
 function searchStudent() {
     // 1. Lấy từ khóa tìm kiếm từ ô input   
     let keyword = document.getElementById('searchInput').value.toLowerCase();
-
+    let status = document.getElementById('statusFilter').value; // Lấy giá trị trạng thái đã chọn
+    
     // 2. Gọi API GET /search-accounts?keyword=... để lấy danh sách sinh viên phù hợp
-    fetch('search-accounts?keyword=' + encodeURIComponent(keyword))
+    fetch(`search-accounts?keyword=${encodeURIComponent(keyword)}&status=${encodeURIComponent(status)}`)
         .then(response => response.json())
         .then(data => {
 

@@ -25,13 +25,20 @@ public class SearchAccountServlet extends HttpServlet {
 
         // Lấy từ khóa do người dùng nhập vào
         String keyword = request.getParameter("keyword");
+        String statusFilter = request.getParameter("status"); // Có thể là "active", "inactive" hoặc null
+
         if (keyword == null) {
             keyword = ""; // Nếu không có từ khóa, tìm tất cả
         }
 
+        int status = -1;
+        if (statusFilter != null && !statusFilter.isEmpty()) {
+            status = Integer.parseInt(statusFilter);
+        }
+
         // Truy vấn database để lấy danh sách tài khoản phù hợp
         StudentDAO dao = new StudentDAO();
-        List<EmailAccount> accounts = dao.searchAccounts(keyword);
+        List<EmailAccount> accounts = dao.searchAccounts(keyword, status);
         
         // Chuyển danh sách tài khoản thành JSON
         Gson gson = new Gson();

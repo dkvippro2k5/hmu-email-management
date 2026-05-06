@@ -24,7 +24,7 @@ public class DashboardServlet extends HttpServlet {
         if (session.getAttribute("currentAdmin") == null) {
             // Nếu chưa đăng nhập, chuyển hướng về trang login
             response.sendRedirect("login.jsp");
-            return; // Dừng tiếp tục thực thi sau khi đã chuyển hướng
+            return;  
         }
 
         // 1. Gọi DAO để móc dữ liệu thật từ Database MySQL
