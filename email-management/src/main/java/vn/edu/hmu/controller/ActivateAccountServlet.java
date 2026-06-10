@@ -23,7 +23,7 @@ public class ActivateAccountServlet extends HttpServlet {
         if (acc != null && newPass.equals(confirmPass)) {
             StudentDAO dao = new StudentDAO();
             
-            // 1. Cập nhật mật khẩu mới và đổi Status lên 1 (Active)
+            // 1. Cập nhật mật khẩu mới và đổi Status lên 1
             boolean isUpdated = dao.activateAccount(acc.getEmailAddress(), newPass, phone);
             
             if (isUpdated) {

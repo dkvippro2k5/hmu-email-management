@@ -22,65 +22,55 @@ public class LoginServlet extends HttpServlet {
         // Cài đặt tiếng Việt để nhỡ có báo lỗi thì không bị lỗi font
         request.setCharacterEncoding("UTF-8");
 
-        // 1. Lấy dữ liệu người dùng gõ trên web
+        // 1. Lấy dữ liệu người dùng gõ trên web (không còn lấy role nữa)
         String user = request.getParameter("username");
         String pass = request.getParameter("password");
-        String role = request.getParameter("role"); // Lấy role để phân biệt Admin và Student
 
         HttpSession session = request.getSession();
 
         // =================================================================
-        // NHÁNH 1: XỬ LÝ CHO CÁN BỘ IT (ADMIN)
+        // BƯỚC 1: KIỂM TRA XEM ĐÂY CÓ PHẢI LÀ CÁN BỘ IT (ADMIN) KHÔNG?
         // =================================================================
-        if ("admin".equals(role)) {
-            AdminDAO dao = new AdminDAO();
-            ITAdmin admin = dao.checkLogin(user, pass);
+        AdminDAO adminDao = new AdminDAO();
+        ITAdmin admin = adminDao.checkLogin(user, pass);
 
-            if (admin != null) {
-                // Đúng: Cấp session và vào Dashboard quản lý
-                session.setAttribute("currentAdmin", admin);
-                response.sendRedirect("dashboard"); 
-            } else {
-                // Sai: Đẩy về trang login
-                request.setAttribute("errorMessage", "Sai tài khoản hoặc mật khẩu Cán bộ IT!");
+        if (admin != null) {
+            // Đúng là Admin: Cấp session và vào Dashboard quản lý
+            session.setAttribute("currentAdmin", admin);
+            response.sendRedirect("dashboard"); 
+            return; // Dừng hàm tại đây để không chạy xuống phần sinh viên nữa
+        } 
+        
+        // =================================================================
+        // BƯỚC 2: NẾU KHÔNG PHẢI ADMIN -> KIỂM TRA XEM CÓ PHẢI LÀ SINH VIÊN?
+        // =================================================================
+        StudentDAO studentDao = new StudentDAO();
+        EmailAccount acc = studentDao.checkLogin(user, pass);
+
+        if (acc != null) {
+            session.setAttribute("user", acc);
+
+            // KIỂM TRA FR-01.5: Đăng nhập lần đầu -> Bắt đổi mật khẩu
+            if (acc.getStatus() == 0) {
+                response.sendRedirect("first-login.jsp"); 
+            } 
+            // KIỂM TRA TÀI KHOẢN KHÓA
+            else if (acc.getStatus() == 2) {
+                request.setAttribute("errorMessage", "Tài khoản của bạn đang bị khóa/bảo lưu. Vui lòng liên hệ IT!");
                 request.getRequestDispatcher("login.jsp").forward(request, response);
             }
-        } 
-        // =================================================================
-        // NHÁNH 2: XỬ LÝ CHO SINH VIÊN
-        // =================================================================
-        else if ("student".equals(role)) {
-            StudentDAO dao = new StudentDAO();
-            EmailAccount acc = dao.checkLogin(user, pass);
-
-            if (acc != null) {
-                session.setAttribute("user", acc);
-
-                // KIỂM TRA FR-01.5: Đăng nhập lần đầu -> Bắt đổi mật khẩu
-                if (acc.getStatus() == 0) {
-                    response.sendRedirect("first-login.jsp"); 
-                } 
-                // KIỂM TRA TÀI KHOẢN KHÓA
-                else if (acc.getStatus() == 2) {
-                    request.setAttribute("errorMessage", "Tài khoản của bạn đang bị khóa/bảo lưu!");
-                    request.getRequestDispatcher("login.jsp").forward(request, response);
-                }
-                // TRẠNG THÁI BÌNH THƯỜNG (Status = 1)
-                else {
-                    // Sinh viên bình thường thì cho vào trang riêng của SV
-                    response.sendRedirect("student-portal.jsp"); 
-                }
-            } else { 
-                request.setAttribute("errorMessage", "Sai Email hoặc mật khẩu Sinh viên!");
-                request.getRequestDispatcher("login.jsp").forward(request, response);
+            // TRẠNG THÁI BÌNH THƯỜNG (Status = 1)
+            else {
+                // Sinh viên bình thường thì cho về trang chủ chính
+                response.sendRedirect("index.jsp"); 
             }
+            return; // Dừng hàm
         } 
+        
         // =================================================================
-        // NHÁNH 3: PHÒNG HỜ LỖI CHƯA CHỌN QUYỀN
+        // BƯỚC 3: NẾU SAI CẢ 2 TRƯỜNG HỢP -> BÁO LỖI ĐĂNG NHẬP
         // =================================================================
-        else {
-            request.setAttribute("errorMessage", "Vui lòng chọn Quyền đăng nhập!");
-            request.getRequestDispatcher("login.jsp").forward(request, response);
-        }
+        request.setAttribute("errorMessage", "Sai tên đăng nhập hoặc mật khẩu!");
+        request.getRequestDispatcher("login.jsp").forward(request, response);
     }
 }

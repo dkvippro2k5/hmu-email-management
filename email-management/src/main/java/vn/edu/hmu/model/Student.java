@@ -5,8 +5,11 @@ import java.sql.Timestamp;
 public class Student {
     private String studentId;
     private String fullName;
+    private String gender;
+    private String dateOfBirth;
     private String className;
     private String department;
+    private String major;
     private String cohort; // Niên khóa (K60, K61...)
     private String personalEmail;
     private Timestamp createdAt;
@@ -15,12 +18,15 @@ public class Student {
     public Student() {}
 
     // Constructor đầy đủ tham số để khởi tạo nhanh
-    public Student(String studentId, String fullName, String className, 
-                   String department, String cohort, String personalEmail) {
+    public Student(String studentId, String fullName, String gender, String dateOfBirth,
+                   String className, String department, String major, String cohort, String personalEmail) {
         this.studentId = studentId;
         this.fullName = fullName;
+        this.gender = gender;
+        this.dateOfBirth = dateOfBirth;
         this.className = className;
         this.department = department;
+        this.major = major;
         this.cohort = cohort;
         this.personalEmail = personalEmail;
     }
@@ -32,11 +38,20 @@ public class Student {
     public String getFullName() { return fullName; }
     public void setFullName(String fullName) { this.fullName = fullName; }
 
+    public String getGender() { return gender; }
+    public void setGender(String gender) { this.gender = gender; }
+
+    public String getDateOfBirth() { return dateOfBirth; }
+    public void setDateOfBirth(String dateOfBirth) { this.dateOfBirth = dateOfBirth; }
+
     public String getClassName() { return className; }
     public void setClassName(String className) { this.className = className; }
 
     public String getDepartment() { return department; }
     public void setDepartment(String department) { this.department = department; }
+
+    public String getMajor() { return major; }
+    public void setMajor(String major) { this.major = major; }
 
     public String getCohort() { return cohort; }
     public void setCohort(String cohort) { this.cohort = cohort; }

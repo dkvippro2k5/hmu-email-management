@@ -23,22 +23,26 @@ public class SearchAccountServlet extends HttpServlet {
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
 
-        // Lấy từ khóa do người dùng nhập vào
+        // Lấy từ khóa và các bộ lọc
         String keyword = request.getParameter("keyword");
-        String statusFilter = request.getParameter("status"); // Có thể là "active", "inactive" hoặc null
+        String statusFilter = request.getParameter("status");
+        String className = request.getParameter("className");
+        String department = request.getParameter("department");
+        String major = request.getParameter("major");
+        String cohort = request.getParameter("cohort");
 
-        if (keyword == null) {
-            keyword = ""; // Nếu không có từ khóa, tìm tất cả
-        }
+        if (keyword == null) keyword = "";
 
         int status = -1;
-        if (statusFilter != null && !statusFilter.isEmpty()) {
-            status = Integer.parseInt(statusFilter);
-        }
+        try {
+            if (statusFilter != null && !statusFilter.isEmpty()) {
+                status = Integer.parseInt(statusFilter);
+            }
+        } catch (NumberFormatException ignored) {}
 
-        // Truy vấn database để lấy danh sách tài khoản phù hợp
+        // Truy vấn database với đầy đủ bộ lọc
         StudentDAO dao = new StudentDAO();
-        List<EmailAccount> accounts = dao.searchAccounts(keyword, status);
+        List<EmailAccount> accounts = dao.searchAccountsAdvanced(keyword, status, className, department, major, cohort);
         
         // Chuyển danh sách tài khoản thành JSON
         Gson gson = new Gson();

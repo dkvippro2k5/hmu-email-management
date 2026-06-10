@@ -54,8 +54,61 @@ public class EmailService {
             Transport.send(message);
             System.out.println("Đã gửi email thành công tới: " + toEmail + " (Đã bị bắt bởi Mailtrap)");
 
-        } catch (Exception e) {
+            } catch (Exception e) {
             System.out.println("Lỗi gửi mail: " + e.getMessage());
-        }
-    }
-}
+            }
+            }
+
+            public static void sendForgotPasswordEmail(String toEmail, String studentName, String newPassword) {
+            Properties props = new Properties();
+            props.put("mail.smtp.auth", "true");
+            props.put("mail.smtp.starttls.enable", "true");
+            props.put("mail.smtp.host", "sandbox.smtp.mailtrap.io");
+            props.put("mail.smtp.port", "2525");
+
+            Session session = Session.getInstance(props, new Authenticator() {
+            @Override
+            protected PasswordAuthentication getPasswordAuthentication() {
+                return new PasswordAuthentication(MAILTRAP_USERNAME, MAILTRAP_PASSWORD);
+            }
+            });
+
+            try {
+            Message message = new MimeMessage(session);
+            message.setFrom(new InternetAddress("admin@hmu.edu.vn", "Phòng IT - Đại học Y Hà Nội (HMU)"));
+            message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toEmail));
+            message.setSubject("Cấp lại mật khẩu tài khoản Email HMU");
+
+            String htmlContent = "<div style='font-family: Arial, sans-serif; line-height: 1.6; color: #333;'>"
+                    + "<h2 style='color: #0f4c75;'>Chào bạn " + studentName + ",</h2>"
+                    + "<p>Hệ thống đã ghi nhận yêu cầu cấp lại mật khẩu cho tài khoản của bạn.</p>"
+                    + "<div style='background-color: #f0f2f5; padding: 15px; border-radius: 5px; margin: 20px 0;'>"
+                    + "  <p><b>Mật khẩu mới của bạn là:</b> <span style='color: #d9534f; font-size: 18px; font-weight: bold;'>" + newPassword + "</span></p>"
+                    + "</div>"
+                    + "<p>Vui lòng đăng nhập và đổi lại mật khẩu ngay lập tức để đảm bảo an toàn.</p>"
+                    + "<p>Nếu bạn không thực hiện yêu cầu này, vui lòng liên hệ ngay với Phòng IT.</p>"
+                    + "<p>Trân trọng,<br><b>Phòng IT HMU</b></p>"
+                    + "</div>";
+
+            message.setContent(htmlContent, "text/html; charset=utf-8");
+            Transport.send(message);
+            } catch (Exception e) {
+            e.printStackTrace();
+            }
+            }
+            
+            // Mô phỏng việc đồng bộ Khóa/Bảo lưu tài khoản lên Dịch vụ Email đám mây (Google Workspace/O365)
+            public static boolean syncSuspendWithCloud(String emailAddress) throws Exception {
+                // Giả lập độ trễ mạng (API Timeout)
+                Thread.sleep(300);
+                
+                // Giả lập lỗi API cho các email bắt đầu bằng từ "error" để test chức năng lỗi thủ công
+                if (emailAddress != null && emailAddress.toLowerCase().startsWith("error")) {
+                    throw new Exception("API Timeout: Dịch vụ Cloud không phản hồi đối với email " + emailAddress);
+                }
+                
+                // Giả lập thành công
+                System.out.println("Đồng bộ khóa tài khoản lên Cloud thành công cho email: " + emailAddress);
+                return true;
+            }
+            }

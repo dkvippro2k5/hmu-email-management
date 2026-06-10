@@ -28,7 +28,11 @@ public class AccountGenerator {
         }
         
         // Ghép với Mã SV và đuôi trường
-        return emailPrefix.toString() + studentId + "@hmu.edu.vn";
+        String localPart = emailPrefix.toString() + studentId;
+        if (localPart.length() > 40) {
+            localPart = localPart.substring(0, 40);
+        }
+        return localPart + "@hmu.edu.vn";
     }
 
     // Hàm 3: Sinh mật khẩu mặc định (Ví dụ: Hmu@ + chuỗi ngẫu nhiên 6 số)

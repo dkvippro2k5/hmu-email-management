@@ -1,0 +1,1569 @@
+{
+  "version": "1.0.0",
+  "project": {
+    "name": "email-management",
+    "languages": [
+      "Java",
+      "JSP",
+      "JavaScript",
+      "XML",
+      "Markdown"
+    ],
+    "frameworks": [
+      "Maven",
+      "Servlets",
+      "JSP",
+      "MySQL",
+      "Apache POI",
+      "JavaMail",
+      "Gson"
+    ],
+    "description": "A comprehensive student email management system for HMU, featuring account lifecycle management, SSO synchronization, and Excel batch processing.",
+    "analyzedAt": "2026-05-27T10:03:23.212Z",
+    "gitCommitHash": "06ffcc046c272c41024315fe59c5599fa1ff08ed"
+  },
+  "nodes": [
+    {
+      "id": "file:.gitignore",
+      "type": "file",
+      "name": ".gitignore",
+      "filePath": ".gitignore",
+      "summary": "Git ignore configuration for Maven, IDEs, and OS-generated files.",
+      "tags": [
+        "config",
+        "git"
+      ],
+      "complexity": "simple",
+      "languageNotes": "Standard .gitignore syntax"
+    },
+    {
+      "id": "file:pom.xml",
+      "type": "config",
+      "name": "pom.xml",
+      "filePath": "pom.xml",
+      "summary": "Maven Project Object Model file defining project dependencies (Servlet API, JSP API, JSTL, MySQL Connector, Apache POI, JavaMail, Gson) and build configuration.",
+      "tags": [
+        "maven",
+        "dependencies",
+        "config"
+      ],
+      "complexity": "simple",
+      "languageNotes": "XML"
+    },
+    {
+      "id": "file:src/main/java/vn/edu/hmu/controller/ActivateAccountServlet.java",
+      "type": "file",
+      "name": "ActivateAccountServlet.java",
+      "filePath": "src/main/java/vn/edu/hmu/controller/ActivateAccountServlet.java",
+      "summary": "Servlet for student account activation and password setup.",
+      "tags": [
+        "servlet",
+        "controller"
+      ],
+      "complexity": "simple",
+      "languageNotes": "Java"
+    },
+    {
+      "id": "class:src/main/java/vn/edu/hmu/controller/ActivateAccountServlet.java:ActivateAccountServlet",
+      "type": "class",
+      "name": "ActivateAccountServlet",
+      "filePath": "src/main/java/vn/edu/hmu/controller/ActivateAccountServlet.java",
+      "summary": "Handles POST requests to /activate-account to set a new password and activate the account.",
+      "tags": [
+        "servlet"
+      ],
+      "complexity": "simple",
+      "languageNotes": "Java"
+    },
+    {
+      "id": "file:src/main/java/vn/edu/hmu/controller/AdminSupportServlet.java",
+      "type": "file",
+      "name": "AdminSupportServlet.java",
+      "filePath": "src/main/java/vn/edu/hmu/controller/AdminSupportServlet.java",
+      "summary": "Servlet for admin to view and resolve support requests.",
+      "tags": [
+        "servlet",
+        "controller",
+        "admin"
+      ],
+      "complexity": "simple",
+      "languageNotes": "Java"
+    },
+    {
+      "id": "class:src/main/java/vn/edu/hmu/controller/AdminSupportServlet.java:AdminSupportServlet",
+      "type": "class",
+      "name": "AdminSupportServlet",
+      "filePath": "src/main/java/vn/edu/hmu/controller/AdminSupportServlet.java",
+      "summary": "Handles GET requests to /admin-support for viewing and resolving student support requests.",
+      "tags": [
+        "servlet"
+      ],
+      "complexity": "simple",
+      "languageNotes": "Java"
+    },
+    {
+      "id": "file:src/main/java/vn/edu/hmu/controller/AutoActivationServlet.java",
+      "type": "file",
+      "name": "AutoActivationServlet.java",
+      "filePath": "src/main/java/vn/edu/hmu/controller/AutoActivationServlet.java",
+      "summary": "Servlet that initializes a background task for automatic account activation.",
+      "tags": [
+        "servlet",
+        "service",
+        "background-task"
+      ],
+      "complexity": "moderate",
+      "languageNotes": "Java"
+    },
+    {
+      "id": "class:src/main/java/vn/edu/hmu/controller/AutoActivationServlet.java:AutoActivationServlet",
+      "type": "class",
+      "name": "AutoActivationServlet",
+      "filePath": "src/main/java/vn/edu/hmu/controller/AutoActivationServlet.java",
+      "summary": "Runs a TimerTask every hour to automatically activate accounts that have been pending for 24 hours.",
+      "tags": [
+        "servlet"
+      ],
+      "complexity": "moderate",
+      "languageNotes": "Java"
+    },
+    {
+      "id": "file:src/main/java/vn/edu/hmu/controller/CreateStudentServlet.java",
+      "type": "file",
+      "name": "CreateStudentServlet.java",
+      "filePath": "src/main/java/vn/edu/hmu/controller/CreateStudentServlet.java",
+      "summary": "Servlet for manual creation of new student accounts.",
+      "tags": [
+        "servlet",
+        "controller"
+      ],
+      "complexity": "simple",
+      "languageNotes": "Java"
+    },
+    {
+      "id": "class:src/main/java/vn/edu/hmu/controller/CreateStudentServlet.java:CreateStudentServlet",
+      "type": "class",
+      "name": "CreateStudentServlet",
+      "filePath": "src/main/java/vn/edu/hmu/controller/CreateStudentServlet.java",
+      "summary": "Handles POST requests to /create-student to create a student and their associated email account.",
+      "tags": [
+        "servlet"
+      ],
+      "complexity": "simple",
+      "languageNotes": "Java"
+    },
+    {
+      "id": "file:src/main/java/vn/edu/hmu/controller/DashboardServlet.java",
+      "type": "file",
+      "name": "DashboardServlet.java",
+      "filePath": "src/main/java/vn/edu/hmu/controller/DashboardServlet.java",
+      "summary": "Servlet for rendering the admin dashboard with statistics and account listings.",
+      "tags": [
+        "servlet",
+        "controller",
+        "admin"
+      ],
+      "complexity": "simple",
+      "languageNotes": "Java"
+    },
+    {
+      "id": "class:src/main/java/vn/edu/hmu/controller/DashboardServlet.java:DashboardServlet",
+      "type": "class",
+      "name": "DashboardServlet",
+      "filePath": "src/main/java/vn/edu/hmu/controller/DashboardServlet.java",
+      "summary": "Handles GET requests to /dashboard, gathering statistics and logs for display.",
+      "tags": [
+        "servlet"
+      ],
+      "complexity": "simple",
+      "languageNotes": "Java"
+    },
+    {
+      "id": "file:src/main/java/vn/edu/hmu/controller/DeleteAccountServlet.java",
+      "type": "file",
+      "name": "DeleteAccountServlet.java",
+      "filePath": "src/main/java/vn/edu/hmu/controller/DeleteAccountServlet.java",
+      "summary": "Servlet for marking accounts as pending deletion.",
+      "tags": [
+        "servlet",
+        "controller"
+      ],
+      "complexity": "simple",
+      "languageNotes": "Java"
+    },
+    {
+      "id": "class:src/main/java/vn/edu/hmu/controller/DeleteAccountServlet.java:DeleteAccountServlet",
+      "type": "class",
+      "name": "DeleteAccountServlet",
+      "filePath": "src/main/java/vn/edu/hmu/controller/DeleteAccountServlet.java",
+      "summary": "Handles POST requests to /delete-account to mark a student account for deletion.",
+      "tags": [
+        "servlet"
+      ],
+      "complexity": "simple",
+      "languageNotes": "Java"
+    },
+    {
+      "id": "file:src/main/java/vn/edu/hmu/controller/ForgotPasswordServlet.java",
+      "type": "file",
+      "name": "ForgotPasswordServlet.java",
+      "filePath": "src/main/java/vn/edu/hmu/controller/ForgotPasswordServlet.java",
+      "summary": "Servlet for handling forgotten password requests and sending new default passwords via email.",
+      "tags": [
+        "servlet",
+        "controller"
+      ],
+      "complexity": "simple",
+      "languageNotes": "Java"
+    },
+    {
+      "id": "class:src/main/java/vn/edu/hmu/controller/ForgotPasswordServlet.java:ForgotPasswordServlet",
+      "type": "class",
+      "name": "ForgotPasswordServlet",
+      "filePath": "src/main/java/vn/edu/hmu/controller/ForgotPasswordServlet.java",
+      "summary": "Handles password reset requests and sends recovery emails.",
+      "tags": [
+        "servlet"
+      ],
+      "complexity": "simple",
+      "languageNotes": "Java"
+    },
+    {
+      "id": "file:src/main/java/vn/edu/hmu/controller/ImportExcelServlet.java",
+      "type": "file",
+      "name": "ImportExcelServlet.java",
+      "filePath": "src/main/java/vn/edu/hmu/controller/ImportExcelServlet.java",
+      "summary": "Servlet for batch importing student data from Excel files.",
+      "tags": [
+        "servlet",
+        "controller",
+        "excel",
+        "batch-processing"
+      ],
+      "complexity": "moderate",
+      "languageNotes": "Java"
+    },
+    {
+      "id": "class:src/main/java/vn/edu/hmu/controller/ImportExcelServlet.java:ImportExcelServlet",
+      "type": "class",
+      "name": "ImportExcelServlet",
+      "filePath": "src/main/java/vn/edu/hmu/controller/ImportExcelServlet.java",
+      "summary": "Uses Apache POI to parse Excel files and StudentDAO to import data, sending welcome emails in background threads.",
+      "tags": [
+        "servlet"
+      ],
+      "complexity": "moderate",
+      "languageNotes": "Java"
+    },
+    {
+      "id": "file:src/main/java/vn/edu/hmu/controller/ITServicesServlet.java",
+      "type": "file",
+      "name": "ITServicesServlet.java",
+      "filePath": "src/main/java/vn/edu/hmu/controller/ITServicesServlet.java",
+      "summary": "Servlet for displaying the IT services page.",
+      "tags": [
+        "servlet",
+        "controller"
+      ],
+      "complexity": "simple",
+      "languageNotes": "Java"
+    },
+    {
+      "id": "class:src/main/java/vn/edu/hmu/controller/ITServicesServlet.java:ITServicesServlet",
+      "type": "class",
+      "name": "ITServicesServlet",
+      "filePath": "src/main/java/vn/edu/hmu/controller/ITServicesServlet.java",
+      "summary": "Handles GET requests to /it-services.",
+      "tags": [
+        "servlet"
+      ],
+      "complexity": "simple",
+      "languageNotes": "Java"
+    },
+    {
+      "id": "file:src/main/java/vn/edu/hmu/controller/LoginServlet.java",
+      "type": "file",
+      "name": "LoginServlet.java",
+      "filePath": "src/main/java/vn/edu/hmu/controller/LoginServlet.java",
+      "summary": "Servlet for handling user authentication (Admin and Student).",
+      "tags": [
+        "servlet",
+        "controller",
+        "auth"
+      ],
+      "complexity": "moderate",
+      "languageNotes": "Java"
+    },
+    {
+      "id": "class:src/main/java/vn/edu/hmu/controller/LoginServlet.java:LoginServlet",
+      "type": "class",
+      "name": "LoginServlet",
+      "filePath": "src/main/java/vn/edu/hmu/controller/LoginServlet.java",
+      "summary": "Handles POST requests to /login, authenticating against AdminDAO then StudentDAO.",
+      "tags": [
+        "servlet"
+      ],
+      "complexity": "moderate",
+      "languageNotes": "Java"
+    },
+    {
+      "id": "file:src/main/java/vn/edu/hmu/controller/LogoutServlet.java",
+      "type": "file",
+      "name": "LogoutServlet.java",
+      "filePath": "src/main/java/vn/edu/hmu/controller/LogoutServlet.java",
+      "summary": "Servlet for handling user logout and session invalidation.",
+      "tags": [
+        "servlet",
+        "controller",
+        "auth"
+      ],
+      "complexity": "simple",
+      "languageNotes": "Java"
+    },
+    {
+      "id": "class:src/main/java/vn/edu/hmu/controller/LogoutServlet.java:LogoutServlet",
+      "type": "class",
+      "name": "LogoutServlet",
+      "filePath": "src/main/java/vn/edu/hmu/controller/LogoutServlet.java",
+      "summary": "Handles GET requests to /logout, invalidating the session and redirecting to index.jsp.",
+      "tags": [
+        "servlet"
+      ],
+      "complexity": "simple",
+      "languageNotes": "Java"
+    },
+    {
+      "id": "file:src/main/java/vn/edu/hmu/controller/PersonalInfoServlet.java",
+      "type": "file",
+      "name": "PersonalInfoServlet.java",
+      "filePath": "src/main/java/vn/edu/hmu/controller/PersonalInfoServlet.java",
+      "summary": "Servlet for displaying a student's personal information and activity logs.",
+      "tags": [
+        "servlet",
+        "controller"
+      ],
+      "complexity": "simple",
+      "languageNotes": "Java"
+    },
+    {
+      "id": "class:src/main/java/vn/edu/hmu/controller/PersonalInfoServlet.java:PersonalInfoServlet",
+      "type": "class",
+      "name": "PersonalInfoServlet",
+      "filePath": "src/main/java/vn/edu/hmu/controller/PersonalInfoServlet.java",
+      "summary": "Handles GET requests to /personal-info, retrieving student details and recent logs.",
+      "tags": [
+        "servlet"
+      ],
+      "complexity": "simple",
+      "languageNotes": "Java"
+    },
+    {
+      "id": "file:src/main/java/vn/edu/hmu/controller/ResetDataServlet.java",
+      "type": "file",
+      "name": "ResetDataServlet.java",
+      "filePath": "src/main/java/vn/edu/hmu/controller/ResetDataServlet.java",
+      "summary": "Servlet for resetting all student and email data (admin only).",
+      "tags": [
+        "servlet",
+        "controller",
+        "admin",
+        "dangerous"
+      ],
+      "complexity": "simple",
+      "languageNotes": "Java"
+    },
+    {
+      "id": "class:src/main/java/vn/edu/hmu/controller/ResetDataServlet.java:ResetDataServlet",
+      "type": "class",
+      "name": "ResetDataServlet",
+      "filePath": "src/main/java/vn/edu/hmu/controller/ResetDataServlet.java",
+      "summary": "Handles POST requests to /reset-data, requiring admin password confirmation.",
+      "tags": [
+        "servlet"
+      ],
+      "complexity": "simple",
+      "languageNotes": "Java"
+    },
+    {
+      "id": "file:src/main/java/vn/edu/hmu/controller/RestoreAccountServlet.java",
+      "type": "file",
+      "name": "RestoreAccountServlet.java",
+      "filePath": "src/main/java/vn/edu/hmu/controller/RestoreAccountServlet.java",
+      "summary": "Servlet for restoring suspended or pending-deletion accounts.",
+      "tags": [
+        "servlet",
+        "controller"
+      ],
+      "complexity": "simple",
+      "languageNotes": "Java"
+    },
+    {
+      "id": "class:src/main/java/vn/edu/hmu/controller/RestoreAccountServlet.java:RestoreAccountServlet",
+      "type": "class",
+      "name": "RestoreAccountServlet",
+      "filePath": "src/main/java/vn/edu/hmu/controller/RestoreAccountServlet.java",
+      "summary": "Handles POST requests to /restore-account.",
+      "tags": [
+        "servlet"
+      ],
+      "complexity": "simple",
+      "languageNotes": "Java"
+    },
+    {
+      "id": "file:src/main/java/vn/edu/hmu/controller/SearchAccountServlet.java",
+      "type": "file",
+      "name": "SearchAccountServlet.java",
+      "filePath": "src/main/java/vn/edu/hmu/controller/SearchAccountServlet.java",
+      "summary": "Servlet for advanced searching of student accounts returning JSON.",
+      "tags": [
+        "servlet",
+        "controller",
+        "api",
+        "search"
+      ],
+      "complexity": "simple",
+      "languageNotes": "Java"
+    },
+    {
+      "id": "class:src/main/java/vn/edu/hmu/controller/SearchAccountServlet.java:SearchAccountServlet",
+      "type": "class",
+      "name": "SearchAccountServlet",
+      "filePath": "src/main/java/vn/edu/hmu/controller/SearchAccountServlet.java",
+      "summary": "Handles GET requests to /search-accounts, applying multiple filters and returning JSON via Gson.",
+      "tags": [
+        "servlet"
+      ],
+      "complexity": "simple",
+      "languageNotes": "Java"
+    },
+    {
+      "id": "file:src/main/java/vn/edu/hmu/controller/SupportServlet.java",
+      "type": "file",
+      "name": "SupportServlet.java",
+      "filePath": "src/main/java/vn/edu/hmu/controller/SupportServlet.java",
+      "summary": "Servlet for submitting support requests from students or admins.",
+      "tags": [
+        "servlet",
+        "controller"
+      ],
+      "complexity": "simple",
+      "languageNotes": "Java"
+    },
+    {
+      "id": "class:src/main/java/vn/edu/hmu/controller/SupportServlet.java:SupportServlet",
+      "type": "class",
+      "name": "SupportServlet",
+      "filePath": "src/main/java/vn/edu/hmu/controller/SupportServlet.java",
+      "summary": "Handles POST requests to /support for creating new support requests.",
+      "tags": [
+        "servlet"
+      ],
+      "complexity": "simple",
+      "languageNotes": "Java"
+    },
+    {
+      "id": "file:src/main/java/vn/edu/hmu/controller/SuspendAccountServlet.java",
+      "type": "file",
+      "name": "SuspendAccountServlet.java",
+      "filePath": "src/main/java/vn/edu/hmu/controller/SuspendAccountServlet.java",
+      "summary": "Servlet for suspending student accounts with a decision number.",
+      "tags": [
+        "servlet",
+        "controller"
+      ],
+      "complexity": "simple",
+      "languageNotes": "Java"
+    },
+    {
+      "id": "class:src/main/java/vn/edu/hmu/controller/SuspendAccountServlet.java:SuspendAccountServlet",
+      "type": "class",
+      "name": "SuspendAccountServlet",
+      "filePath": "src/main/java/vn/edu/hmu/controller/SuspendAccountServlet.java",
+      "summary": "Handles POST requests to /suspend-account.",
+      "tags": [
+        "servlet"
+      ],
+      "complexity": "simple",
+      "languageNotes": "Java"
+    },
+    {
+      "id": "file:src/main/java/vn/edu/hmu/controller/SyncSSOServlet.java",
+      "type": "file",
+      "name": "SyncSSOServlet.java",
+      "filePath": "src/main/java/vn/edu/hmu/controller/SyncSSOServlet.java",
+      "summary": "Servlet for simulating SSO synchronization.",
+      "tags": [
+        "servlet",
+        "controller",
+        "api",
+        "simulation"
+      ],
+      "complexity": "simple",
+      "languageNotes": "Java"
+    },
+    {
+      "id": "class:src/main/java/vn/edu/hmu/controller/SyncSSOServlet.java:SyncSSOServlet",
+      "type": "class",
+      "name": "SyncSSOServlet",
+      "filePath": "src/main/java/vn/edu/hmu/controller/SyncSSOServlet.java",
+      "summary": "Handles POST requests to /sync-sso, simulating network delay.",
+      "tags": [
+        "servlet"
+      ],
+      "complexity": "simple",
+      "languageNotes": "Java"
+    },
+    {
+      "id": "file:src/main/java/vn/edu/hmu/controller/TestAutoActivationServlet.java",
+      "type": "file",
+      "name": "TestAutoActivationServlet.java",
+      "filePath": "src/main/java/vn/edu/hmu/controller/TestAutoActivationServlet.java",
+      "summary": "Servlet for manually triggering the auto-activation process for testing.",
+      "tags": [
+        "servlet",
+        "controller",
+        "test"
+      ],
+      "complexity": "simple",
+      "languageNotes": "Java"
+    },
+    {
+      "id": "class:src/main/java/vn/edu/hmu/controller/TestAutoActivationServlet.java:TestAutoActivationServlet",
+      "type": "class",
+      "name": "TestAutoActivationServlet",
+      "filePath": "src/main/java/vn/edu/hmu/controller/TestAutoActivationServlet.java",
+      "summary": "Handles GET requests to /test-auto-activation, requiring admin privileges.",
+      "tags": [
+        "servlet"
+      ],
+      "complexity": "simple",
+      "languageNotes": "Java"
+    },
+    {
+      "id": "file:src/main/java/vn/edu/hmu/controller/UpdateStudentServlet.java",
+      "type": "file",
+      "name": "UpdateStudentServlet.java",
+      "filePath": "src/main/java/vn/edu/hmu/controller/UpdateStudentServlet.java",
+      "summary": "Servlet for updating student information and account status.",
+      "tags": [
+        "servlet",
+        "controller"
+      ],
+      "complexity": "simple",
+      "languageNotes": "Java"
+    },
+    {
+      "id": "class:src/main/java/vn/edu/hmu/controller/UpdateStudentServlet.java:UpdateStudentServlet",
+      "type": "class",
+      "name": "UpdateStudentServlet",
+      "filePath": "src/main/java/vn/edu/hmu/controller/UpdateStudentServlet.java",
+      "summary": "Handles POST requests to /update-student.",
+      "tags": [
+        "servlet"
+      ],
+      "complexity": "simple",
+      "languageNotes": "Java"
+    },
+    {
+      "id": "file:src/main/java/vn/edu/hmu/dao/AdminDAO.java",
+      "type": "file",
+      "name": "AdminDAO.java",
+      "filePath": "src/main/java/vn/edu/hmu/dao/AdminDAO.java",
+      "summary": "Data Access Object for administrator accounts and action logs.",
+      "tags": [
+        "dao",
+        "data-layer"
+      ],
+      "complexity": "simple",
+      "languageNotes": "Java"
+    },
+    {
+      "id": "class:src/main/java/vn/edu/hmu/dao/AdminDAO.java:AdminDAO",
+      "type": "class",
+      "name": "AdminDAO",
+      "filePath": "src/main/java/vn/edu/hmu/dao/AdminDAO.java",
+      "summary": "Provides methods for admin login verification and log management.",
+      "tags": [
+        "dao"
+      ],
+      "complexity": "simple",
+      "languageNotes": "Java"
+    },
+    {
+      "id": "file:src/main/java/vn/edu/hmu/dao/StudentDAO.java",
+      "type": "file",
+      "name": "StudentDAO.java",
+      "filePath": "src/main/java/vn/edu/hmu/dao/StudentDAO.java",
+      "summary": "Data Access Object for student profiles and email accounts.",
+      "tags": [
+        "dao",
+        "data-layer"
+      ],
+      "complexity": "moderate",
+      "languageNotes": "Java"
+    },
+    {
+      "id": "class:src/main/java/vn/edu/hmu/dao/StudentDAO.java:StudentDAO",
+      "type": "class",
+      "name": "StudentDAO",
+      "filePath": "src/main/java/vn/edu/hmu/dao/StudentDAO.java",
+      "summary": "Comprehensive DAO for CRUD operations on students and email accounts, including batch operations and search.",
+      "tags": [
+        "dao"
+      ],
+      "complexity": "moderate",
+      "languageNotes": "Java"
+    },
+    {
+      "id": "file:src/main/java/vn/edu/hmu/dao/SupportRequestDAO.java",
+      "type": "file",
+      "name": "SupportRequestDAO.java",
+      "filePath": "src/main/java/vn/edu/hmu/dao/SupportRequestDAO.java",
+      "summary": "Data Access Object for student support requests.",
+      "tags": [
+        "dao",
+        "data-layer"
+      ],
+      "complexity": "simple",
+      "languageNotes": "Java"
+    },
+    {
+      "id": "class:src/main/java/vn/edu/hmu/dao/SupportRequestDAO.java:SupportRequestDAO",
+      "type": "class",
+      "name": "SupportRequestDAO",
+      "filePath": "src/main/java/vn/edu/hmu/dao/SupportRequestDAO.java",
+      "summary": "Manages insertion, retrieval, and status updates for support requests.",
+      "tags": [
+        "dao"
+      ],
+      "complexity": "simple",
+      "languageNotes": "Java"
+    },
+    {
+      "id": "file:src/main/java/vn/edu/hmu/model/ActionLog.java",
+      "type": "file",
+      "name": "ActionLog.java",
+      "filePath": "src/main/java/vn/edu/hmu/model/ActionLog.java",
+      "summary": "Model class representing a system action log.",
+      "tags": [
+        "model",
+        "entity"
+      ],
+      "complexity": "simple",
+      "languageNotes": "Java"
+    },
+    {
+      "id": "class:src/main/java/vn/edu/hmu/model/ActionLog.java:ActionLog",
+      "type": "class",
+      "name": "ActionLog",
+      "filePath": "src/main/java/vn/edu/hmu/model/ActionLog.java",
+      "summary": "POJO for log entries capturing admin ID, target email, action type, reason, and timestamp.",
+      "tags": [
+        "model"
+      ],
+      "complexity": "simple",
+      "languageNotes": "Java"
+    },
+    {
+      "id": "file:src/main/java/vn/edu/hmu/model/Email.java",
+      "type": "file",
+      "name": "Email.java",
+      "filePath": "src/main/java/vn/edu/hmu/model/Email.java",
+      "summary": "Model class representing a simplified email message for UI display.",
+      "tags": [
+        "model",
+        "entity"
+      ],
+      "complexity": "simple",
+      "languageNotes": "Java"
+    },
+    {
+      "id": "class:src/main/java/vn/edu/hmu/model/Email.java:Email",
+      "type": "class",
+      "name": "Email",
+      "filePath": "src/main/java/vn/edu/hmu/model/Email.java",
+      "summary": "POJO for email messages with sender, subject, time, and status.",
+      "tags": [
+        "model"
+      ],
+      "complexity": "simple",
+      "languageNotes": "Java"
+    },
+    {
+      "id": "file:src/main/java/vn/edu/hmu/model/EmailAccount.java",
+      "type": "file",
+      "name": "EmailAccount.java",
+      "filePath": "src/main/java/vn/edu/hmu/model/EmailAccount.java",
+      "summary": "Model class representing a student's institutional email account.",
+      "tags": [
+        "model",
+        "entity"
+      ],
+      "complexity": "simple",
+      "languageNotes": "Java"
+    },
+    {
+      "id": "class:src/main/java/vn/edu/hmu/model/EmailAccount.java:EmailAccount",
+      "type": "class",
+      "name": "EmailAccount",
+      "filePath": "src/main/java/vn/edu/hmu/model/EmailAccount.java",
+      "summary": "Entity class linking students to their hmu.edu.vn email addresses, status, and activation details.",
+      "tags": [
+        "model"
+      ],
+      "complexity": "simple",
+      "languageNotes": "Java"
+    },
+    {
+      "id": "file:src/main/java/vn/edu/hmu/model/ITAdmin.java",
+      "type": "file",
+      "name": "ITAdmin.java",
+      "filePath": "src/main/java/vn/edu/hmu/model/ITAdmin.java",
+      "summary": "Model class representing an IT administrator.",
+      "tags": [
+        "model",
+        "entity"
+      ],
+      "complexity": "simple",
+      "languageNotes": "Java"
+    },
+    {
+      "id": "class:src/main/java/vn/edu/hmu/model/ITAdmin.java:ITAdmin",
+      "type": "class",
+      "name": "ITAdmin",
+      "filePath": "src/main/java/vn/edu/hmu/model/ITAdmin.java",
+      "summary": "POJO for administrator profiles.",
+      "tags": [
+        "model"
+      ],
+      "complexity": "simple",
+      "languageNotes": "Java"
+    },
+    {
+      "id": "file:src/main/java/vn/edu/hmu/model/Student.java",
+      "type": "file",
+      "name": "Student.java",
+      "filePath": "src/main/java/vn/edu/hmu/model/Student.java",
+      "summary": "Model class representing a student's profile.",
+      "tags": [
+        "model",
+        "entity"
+      ],
+      "complexity": "simple",
+      "languageNotes": "Java"
+    },
+    {
+      "id": "class:src/main/java/vn/edu/hmu/model/Student.java:Student",
+      "type": "class",
+      "name": "Student",
+      "filePath": "src/main/java/vn/edu/hmu/model/Student.java",
+      "summary": "Comprehensive POJO for student demographics and enrollment details.",
+      "tags": [
+        "model"
+      ],
+      "complexity": "simple",
+      "languageNotes": "Java"
+    },
+    {
+      "id": "file:src/main/java/vn/edu/hmu/model/SupportRequest.java",
+      "type": "file",
+      "name": "SupportRequest.java",
+      "filePath": "src/main/java/vn/edu/hmu/model/SupportRequest.java",
+      "summary": "Model class representing a support request.",
+      "tags": [
+        "model",
+        "entity"
+      ],
+      "complexity": "simple",
+      "languageNotes": "Java"
+    },
+    {
+      "id": "class:src/main/java/vn/edu/hmu/model/SupportRequest.java:SupportRequest",
+      "type": "class",
+      "name": "SupportRequest",
+      "filePath": "src/main/java/vn/edu/hmu/model/SupportRequest.java",
+      "summary": "POJO for support requests with student ID, subject, content, and status.",
+      "tags": [
+        "model"
+      ],
+      "complexity": "simple",
+      "languageNotes": "Java"
+    },
+    {
+      "id": "file:src/main/java/vn/edu/hmu/util/AccountGenerator.java",
+      "type": "file",
+      "name": "AccountGenerator.java",
+      "filePath": "src/main/java/vn/edu/hmu/util/AccountGenerator.java",
+      "summary": "Utility class for generating student emails and default passwords.",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple",
+      "languageNotes": "Java"
+    },
+    {
+      "id": "class:src/main/java/vn/edu/hmu/util/AccountGenerator.java:AccountGenerator",
+      "type": "class",
+      "name": "AccountGenerator",
+      "filePath": "src/main/java/vn/edu/hmu/util/AccountGenerator.java",
+      "summary": "Provides logic to normalize names, generate hmu.edu.vn emails, and random default passwords.",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple",
+      "languageNotes": "Java"
+    },
+    {
+      "id": "file:src/main/java/vn/edu/hmu/util/DBConnection.java",
+      "type": "file",
+      "name": "DBConnection.java",
+      "filePath": "src/main/java/vn/edu/hmu/util/DBConnection.java",
+      "summary": "Utility class for managing JDBC database connections.",
+      "tags": [
+        "utility",
+        "database",
+        "connection"
+      ],
+      "complexity": "simple",
+      "languageNotes": "Java"
+    },
+    {
+      "id": "class:src/main/java/vn/edu/hmu/util/DBConnection.java:DBConnection",
+      "type": "class",
+      "name": "DBConnection",
+      "filePath": "src/main/java/vn/edu/hmu/util/DBConnection.java",
+      "summary": "Provides static method to get a Connection object for the MySQL database.",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple",
+      "languageNotes": "Java"
+    },
+    {
+      "id": "file:src/main/java/vn/edu/hmu/util/EmailService.java",
+      "type": "file",
+      "name": "EmailService.java",
+      "filePath": "src/main/java/vn/edu/hmu/util/EmailService.java",
+      "summary": "Utility class for sending emails via JavaMail API and Mailtrap.",
+      "tags": [
+        "utility",
+        "email",
+        "service"
+      ],
+      "complexity": "simple",
+      "languageNotes": "Java"
+    },
+    {
+      "id": "class:src/main/java/vn/edu/hmu/util/EmailService.java:EmailService",
+      "type": "class",
+      "name": "EmailService",
+      "filePath": "src/main/java/vn/edu/hmu/util/EmailService.java",
+      "summary": "Handles sending welcome emails and forgot-password recovery emails.",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple",
+      "languageNotes": "Java"
+    },
+    {
+      "id": "file:src/main/webapp/admin-support.jsp",
+      "type": "document",
+      "name": "admin-support.jsp",
+      "filePath": "src/main/webapp/admin-support.jsp",
+      "summary": "Admin view for managing support requests.",
+      "tags": [
+        "view",
+        "jsp",
+        "admin"
+      ],
+      "complexity": "simple",
+      "languageNotes": "JSP, HTML, CSS"
+    },
+    {
+      "id": "file:src/main/webapp/admissions.jsp",
+      "type": "document",
+      "name": "admissions.jsp",
+      "filePath": "src/main/webapp/admissions.jsp",
+      "summary": "Public page with admissions and training information.",
+      "tags": [
+        "view",
+        "jsp",
+        "public"
+      ],
+      "complexity": "simple",
+      "languageNotes": "JSP, HTML, CSS"
+    },
+    {
+      "id": "file:src/main/webapp/dashboard.jsp",
+      "type": "document",
+      "name": "dashboard.jsp",
+      "filePath": "src/main/webapp/dashboard.jsp",
+      "summary": "The main admin dashboard interface for account management.",
+      "tags": [
+        "view",
+        "jsp",
+        "admin",
+        "main-ui"
+      ],
+      "complexity": "moderate",
+      "languageNotes": "JSP, HTML, CSS, JavaScript"
+    },
+    {
+      "id": "file:src/main/webapp/first-login.jsp",
+      "type": "document",
+      "name": "first-login.jsp",
+      "filePath": "src/main/webapp/first-login.jsp",
+      "summary": "Student view for first-time login activation and password setup.",
+      "tags": [
+        "view",
+        "jsp",
+        "student"
+      ],
+      "complexity": "simple",
+      "languageNotes": "JSP, HTML, CSS"
+    },
+    {
+      "id": "file:src/main/webapp/forgot-password.jsp",
+      "type": "document",
+      "name": "forgot-password.jsp",
+      "filePath": "src/main/webapp/forgot-password.jsp",
+      "summary": "View for the forgotten password request form.",
+      "tags": [
+        "view",
+        "jsp",
+        "public"
+      ],
+      "complexity": "simple",
+      "languageNotes": "JSP, HTML, CSS"
+    },
+    {
+      "id": "file:src/main/webapp/index.jsp",
+      "type": "document",
+      "name": "index.jsp",
+      "filePath": "src/main/webapp/index.jsp",
+      "summary": "The public landing page for HMU.",
+      "tags": [
+        "view",
+        "jsp",
+        "public"
+      ],
+      "complexity": "simple",
+      "languageNotes": "JSP, HTML, CSS"
+    },
+    {
+      "id": "file:src/main/webapp/it-services.jsp",
+      "type": "document",
+      "name": "it-services.jsp",
+      "filePath": "src/main/webapp/it-services.jsp",
+      "summary": "View for the IT services page, listing various university systems.",
+      "tags": [
+        "view",
+        "jsp",
+        "public"
+      ],
+      "complexity": "simple",
+      "languageNotes": "JSP, HTML, CSS"
+    },
+    {
+      "id": "file:src/main/webapp/login.jsp",
+      "type": "document",
+      "name": "login.jsp",
+      "filePath": "src/main/webapp/login.jsp",
+      "summary": "The main login page for the system.",
+      "tags": [
+        "view",
+        "jsp",
+        "auth"
+      ],
+      "complexity": "simple",
+      "languageNotes": "JSP, HTML, CSS"
+    },
+    {
+      "id": "file:src/main/webapp/personal-info.jsp",
+      "type": "document",
+      "name": "personal-info.jsp",
+      "filePath": "src/main/webapp/personal-info.jsp",
+      "summary": "Student view for displaying personal information and account logs.",
+      "tags": [
+        "view",
+        "jsp",
+        "student"
+      ],
+      "complexity": "simple",
+      "languageNotes": "JSP, HTML, CSS"
+    },
+    {
+      "id": "file:src/main/webapp/student-portal.jsp",
+      "type": "document",
+      "name": "student-portal.jsp",
+      "filePath": "src/main/webapp/student-portal.jsp",
+      "summary": "The main portal view for students once logged in.",
+      "tags": [
+        "view",
+        "jsp",
+        "student",
+        "main-ui"
+      ],
+      "complexity": "simple",
+      "languageNotes": "JSP, HTML, CSS"
+    },
+    {
+      "id": "file:src/main/webapp/support.jsp",
+      "type": "document",
+      "name": "support.jsp",
+      "filePath": "src/main/webapp/support.jsp",
+      "summary": "Student view for submitting support requests.",
+      "tags": [
+        "view",
+        "jsp",
+        "student"
+      ],
+      "complexity": "simple",
+      "languageNotes": "JSP, HTML, CSS"
+    },
+    {
+      "id": "file:src/main/webapp/js/main.js",
+      "type": "file",
+      "name": "main.js",
+      "filePath": "src/main/webapp/js/main.js",
+      "summary": "Client-side JavaScript for handling UI navigation, AJAX requests, and DOM manipulation in the dashboard.",
+      "tags": [
+        "javascript",
+        "client-side",
+        "ajax"
+      ],
+      "complexity": "moderate",
+      "languageNotes": "JavaScript"
+    },
+    {
+      "id": "file:src/main/webapp/WEB-INF/web.xml",
+      "type": "config",
+      "name": "web.xml",
+      "filePath": "src/main/webapp/WEB-INF/web.xml",
+      "summary": "The deployment descriptor for the web application.",
+      "tags": [
+        "config",
+        "servlet",
+        "deployment"
+      ],
+      "complexity": "simple",
+      "languageNotes": "XML"
+    }
+  ],
+  "edges": [
+    {
+      "source": "class:src/main/java/vn/edu/hmu/controller/ActivateAccountServlet.java:ActivateAccountServlet",
+      "target": "class:src/main/java/vn/edu/hmu/dao/StudentDAO.java:StudentDAO",
+      "type": "calls",
+      "weight": 1,
+      "direction": "forward"
+    },
+    {
+      "source": "class:src/main/java/vn/edu/hmu/controller/AdminSupportServlet.java:AdminSupportServlet",
+      "target": "class:src/main/java/vn/edu/hmu/dao/SupportRequestDAO.java:SupportRequestDAO",
+      "type": "calls",
+      "weight": 1,
+      "direction": "forward"
+    },
+    {
+      "source": "class:src/main/java/vn/edu/hmu/controller/AutoActivationServlet.java:AutoActivationServlet",
+      "target": "class:src/main/java/vn/edu/hmu/dao/StudentDAO.java:StudentDAO",
+      "type": "calls",
+      "weight": 1,
+      "direction": "forward"
+    },
+    {
+      "source": "class:src/main/java/vn/edu/hmu/controller/AutoActivationServlet.java:AutoActivationServlet",
+      "target": "class:src/main/java/vn/edu/hmu/dao/AdminDAO.java:AdminDAO",
+      "type": "calls",
+      "weight": 1,
+      "direction": "forward"
+    },
+    {
+      "source": "class:src/main/java/vn/edu/hmu/controller/CreateStudentServlet.java:CreateStudentServlet",
+      "target": "class:src/main/java/vn/edu/hmu/dao/StudentDAO.java:StudentDAO",
+      "type": "calls",
+      "weight": 1,
+      "direction": "forward"
+    },
+    {
+      "source": "class:src/main/java/vn/edu/hmu/controller/CreateStudentServlet.java:CreateStudentServlet",
+      "target": "class:src/main/java/vn/edu/hmu/util/AccountGenerator.java:AccountGenerator",
+      "type": "calls",
+      "weight": 1,
+      "direction": "forward"
+    },
+    {
+      "source": "class:src/main/java/vn/edu/hmu/controller/DashboardServlet.java:DashboardServlet",
+      "target": "class:src/main/java/vn/edu/hmu/dao/StudentDAO.java:StudentDAO",
+      "type": "calls",
+      "weight": 1,
+      "direction": "forward"
+    },
+    {
+      "source": "class:src/main/java/vn/edu/hmu/controller/DashboardServlet.java:DashboardServlet",
+      "target": "class:src/main/java/vn/edu/hmu/dao/AdminDAO.java:AdminDAO",
+      "type": "calls",
+      "weight": 1,
+      "direction": "forward"
+    },
+    {
+      "source": "class:src/main/java/vn/edu/hmu/controller/DashboardServlet.java:DashboardServlet",
+      "target": "class:src/main/java/vn/edu/hmu/dao/SupportRequestDAO.java:SupportRequestDAO",
+      "type": "calls",
+      "weight": 1,
+      "direction": "forward"
+    },
+    {
+      "source": "class:src/main/java/vn/edu/hmu/controller/DeleteAccountServlet.java:DeleteAccountServlet",
+      "target": "class:src/main/java/vn/edu/hmu/dao/StudentDAO.java:StudentDAO",
+      "type": "calls",
+      "weight": 1,
+      "direction": "forward"
+    },
+    {
+      "source": "class:src/main/java/vn/edu/hmu/controller/ForgotPasswordServlet.java:ForgotPasswordServlet",
+      "target": "class:src/main/java/vn/edu/hmu/dao/StudentDAO.java:StudentDAO",
+      "type": "calls",
+      "weight": 1,
+      "direction": "forward"
+    },
+    {
+      "source": "class:src/main/java/vn/edu/hmu/controller/ForgotPasswordServlet.java:ForgotPasswordServlet",
+      "target": "class:src/main/java/vn/edu/hmu/dao/AdminDAO.java:AdminDAO",
+      "type": "calls",
+      "weight": 1,
+      "direction": "forward"
+    },
+    {
+      "source": "class:src/main/java/vn/edu/hmu/controller/ForgotPasswordServlet.java:ForgotPasswordServlet",
+      "target": "class:src/main/java/vn/edu/hmu/util/AccountGenerator.java:AccountGenerator",
+      "type": "calls",
+      "weight": 1,
+      "direction": "forward"
+    },
+    {
+      "source": "class:src/main/java/vn/edu/hmu/controller/ForgotPasswordServlet.java:ForgotPasswordServlet",
+      "target": "class:src/main/java/vn/edu/hmu/util/EmailService.java:EmailService",
+      "type": "calls",
+      "weight": 1,
+      "direction": "forward"
+    },
+    {
+      "source": "class:src/main/java/vn/edu/hmu/controller/ImportExcelServlet.java:ImportExcelServlet",
+      "target": "class:src/main/java/vn/edu/hmu/dao/StudentDAO.java:StudentDAO",
+      "type": "calls",
+      "weight": 1,
+      "direction": "forward"
+    },
+    {
+      "source": "class:src/main/java/vn/edu/hmu/controller/ImportExcelServlet.java:ImportExcelServlet",
+      "target": "class:src/main/java/vn/edu/hmu/util/AccountGenerator.java:AccountGenerator",
+      "type": "calls",
+      "weight": 1,
+      "direction": "forward"
+    },
+    {
+      "source": "class:src/main/java/vn/edu/hmu/controller/ImportExcelServlet.java:ImportExcelServlet",
+      "target": "class:src/main/java/vn/edu/hmu/util/EmailService.java:EmailService",
+      "type": "calls",
+      "weight": 1,
+      "direction": "forward"
+    },
+    {
+      "source": "class:src/main/java/vn/edu/hmu/controller/LoginServlet.java:LoginServlet",
+      "target": "class:src/main/java/vn/edu/hmu/dao/AdminDAO.java:AdminDAO",
+      "type": "calls",
+      "weight": 1,
+      "direction": "forward"
+    },
+    {
+      "source": "class:src/main/java/vn/edu/hmu/controller/LoginServlet.java:LoginServlet",
+      "target": "class:src/main/java/vn/edu/hmu/dao/StudentDAO.java:StudentDAO",
+      "type": "calls",
+      "weight": 1,
+      "direction": "forward"
+    },
+    {
+      "source": "class:src/main/java/vn/edu/hmu/controller/PersonalInfoServlet.java:PersonalInfoServlet",
+      "target": "class:src/main/java/vn/edu/hmu/dao/StudentDAO.java:StudentDAO",
+      "type": "calls",
+      "weight": 1,
+      "direction": "forward"
+    },
+    {
+      "source": "class:src/main/java/vn/edu/hmu/controller/PersonalInfoServlet.java:PersonalInfoServlet",
+      "target": "class:src/main/java/vn/edu/hmu/dao/AdminDAO.java:AdminDAO",
+      "type": "calls",
+      "weight": 1,
+      "direction": "forward"
+    },
+    {
+      "source": "class:src/main/java/vn/edu/hmu/controller/ResetDataServlet.java:ResetDataServlet",
+      "target": "class:src/main/java/vn/edu/hmu/dao/AdminDAO.java:AdminDAO",
+      "type": "calls",
+      "weight": 1,
+      "direction": "forward"
+    },
+    {
+      "source": "class:src/main/java/vn/edu/hmu/controller/ResetDataServlet.java:ResetDataServlet",
+      "target": "class:src/main/java/vn/edu/hmu/dao/StudentDAO.java:StudentDAO",
+      "type": "calls",
+      "weight": 1,
+      "direction": "forward"
+    },
+    {
+      "source": "class:src/main/java/vn/edu/hmu/controller/RestoreAccountServlet.java:RestoreAccountServlet",
+      "target": "class:src/main/java/vn/edu/hmu/dao/StudentDAO.java:StudentDAO",
+      "type": "calls",
+      "weight": 1,
+      "direction": "forward"
+    },
+    {
+      "source": "class:src/main/java/vn/edu/hmu/controller/SearchAccountServlet.java:SearchAccountServlet",
+      "target": "class:src/main/java/vn/edu/hmu/dao/StudentDAO.java:StudentDAO",
+      "type": "calls",
+      "weight": 1,
+      "direction": "forward"
+    },
+    {
+      "source": "class:src/main/java/vn/edu/hmu/controller/SupportServlet.java:SupportServlet",
+      "target": "class:src/main/java/vn/edu/hmu/dao/SupportRequestDAO.java:SupportRequestDAO",
+      "type": "calls",
+      "weight": 1,
+      "direction": "forward"
+    },
+    {
+      "source": "class:src/main/java/vn/edu/hmu/controller/SuspendAccountServlet.java:SuspendAccountServlet",
+      "target": "class:src/main/java/vn/edu/hmu/dao/StudentDAO.java:StudentDAO",
+      "type": "calls",
+      "weight": 1,
+      "direction": "forward"
+    },
+    {
+      "source": "class:src/main/java/vn/edu/hmu/controller/SyncSSOServlet.java:SyncSSOServlet",
+      "target": "class:src/main/java/vn/edu/hmu/dao/StudentDAO.java:StudentDAO",
+      "type": "calls",
+      "weight": 1,
+      "direction": "forward"
+    },
+    {
+      "source": "class:src/main/java/vn/edu/hmu/controller/TestAutoActivationServlet.java:TestAutoActivationServlet",
+      "target": "class:src/main/java/vn/edu/hmu/dao/StudentDAO.java:StudentDAO",
+      "type": "calls",
+      "weight": 1,
+      "direction": "forward"
+    },
+    {
+      "source": "class:src/main/java/vn/edu/hmu/controller/TestAutoActivationServlet.java:TestAutoActivationServlet",
+      "target": "class:src/main/java/vn/edu/hmu/dao/AdminDAO.java:AdminDAO",
+      "type": "calls",
+      "weight": 1,
+      "direction": "forward"
+    },
+    {
+      "source": "class:src/main/java/vn/edu/hmu/controller/UpdateStudentServlet.java:UpdateStudentServlet",
+      "target": "class:src/main/java/vn/edu/hmu/dao/StudentDAO.java:StudentDAO",
+      "type": "calls",
+      "weight": 1,
+      "direction": "forward"
+    },
+    {
+      "source": "class:src/main/java/vn/edu/hmu/dao/AdminDAO.java:AdminDAO",
+      "target": "class:src/main/java/vn/edu/hmu/util/DBConnection.java:DBConnection",
+      "type": "calls",
+      "weight": 1,
+      "direction": "forward"
+    },
+    {
+      "source": "class:src/main/java/vn/edu/hmu/dao/StudentDAO.java:StudentDAO",
+      "target": "class:src/main/java/vn/edu/hmu/util/DBConnection.java:DBConnection",
+      "type": "calls",
+      "weight": 1,
+      "direction": "forward"
+    },
+    {
+      "source": "class:src/main/java/vn/edu/hmu/dao/SupportRequestDAO.java:SupportRequestDAO",
+      "target": "class:src/main/java/vn/edu/hmu/util/DBConnection.java:DBConnection",
+      "type": "calls",
+      "weight": 1,
+      "direction": "forward"
+    },
+    {
+      "source": "file:src/main/webapp/admin-support.jsp",
+      "target": "class:src/main/java/vn/edu/hmu/model/SupportRequest.java:SupportRequest",
+      "type": "documents",
+      "weight": 1,
+      "direction": "forward"
+    },
+    {
+      "source": "file:src/main/webapp/dashboard.jsp",
+      "target": "class:src/main/java/vn/edu/hmu/model/EmailAccount.java:EmailAccount",
+      "type": "documents",
+      "weight": 1,
+      "direction": "forward"
+    },
+    {
+      "source": "file:src/main/webapp/dashboard.jsp",
+      "target": "class:src/main/java/vn/edu/hmu/model/ActionLog.java:ActionLog",
+      "type": "documents",
+      "weight": 1,
+      "direction": "forward"
+    },
+    {
+      "source": "file:src/main/webapp/dashboard.jsp",
+      "target": "file:src/main/webapp/js/main.js",
+      "type": "depends_on",
+      "weight": 1,
+      "direction": "forward"
+    },
+    {
+      "source": "file:src/main/webapp/js/main.js",
+      "target": "class:src/main/java/vn/edu/hmu/controller/SearchAccountServlet.java:SearchAccountServlet",
+      "type": "calls",
+      "weight": 1,
+      "direction": "forward"
+    },
+    {
+      "source": "file:src/main/webapp/js/main.js",
+      "target": "class:src/main/java/vn/edu/hmu/controller/SyncSSOServlet.java:SyncSSOServlet",
+      "type": "calls",
+      "weight": 1,
+      "direction": "forward"
+    },
+    {
+      "source": "file:src/main/webapp/js/main.js",
+      "target": "class:src/main/java/vn/edu/hmu/controller/UpdateStudentServlet.java:UpdateStudentServlet",
+      "type": "calls",
+      "weight": 1,
+      "direction": "forward"
+    },
+    {
+      "source": "file:src/main/webapp/js/main.js",
+      "target": "class:src/main/java/vn/edu/hmu/controller/DeleteAccountServlet.java:DeleteAccountServlet",
+      "type": "calls",
+      "weight": 1,
+      "direction": "forward"
+    },
+    {
+      "source": "file:src/main/webapp/js/main.js",
+      "target": "class:src/main/java/vn/edu/hmu/controller/SuspendAccountServlet.java:SuspendAccountServlet",
+      "type": "calls",
+      "weight": 1,
+      "direction": "forward"
+    },
+    {
+      "source": "file:src/main/webapp/js/main.js",
+      "target": "class:src/main/java/vn/edu/hmu/controller/RestoreAccountServlet.java:RestoreAccountServlet",
+      "type": "calls",
+      "weight": 1,
+      "direction": "forward"
+    },
+    {
+      "source": "file:src/main/webapp/js/main.js",
+      "target": "class:src/main/java/vn/edu/hmu/controller/CreateStudentServlet.java:CreateStudentServlet",
+      "type": "calls",
+      "weight": 1,
+      "direction": "forward"
+    },
+    {
+      "source": "file:src/main/webapp/js/main.js",
+      "target": "class:src/main/java/vn/edu/hmu/controller/TestAutoActivationServlet.java:TestAutoActivationServlet",
+      "type": "calls",
+      "weight": 1,
+      "direction": "forward"
+    },
+    {
+      "source": "file:src/main/webapp/login.jsp",
+      "target": "class:src/main/java/vn/edu/hmu/controller/LoginServlet.java:LoginServlet",
+      "type": "configures",
+      "weight": 1,
+      "direction": "forward"
+    },
+    {
+      "source": "file:src/main/webapp/support.jsp",
+      "target": "class:src/main/java/vn/edu/hmu/controller/SupportServlet.java:SupportServlet",
+      "type": "configures",
+      "weight": 1,
+      "direction": "forward"
+    }
+  ],
+  "layers": [
+    {
+      "id": "layer:controller",
+      "name": "Web Controller Layer",
+      "description": "Handles HTTP requests and orchestrates business logic via Servlets.",
+      "nodeIds": [
+        "file:src/main/java/vn/edu/hmu/controller/ActivateAccountServlet.java",
+        "class:src/main/java/vn/edu/hmu/controller/ActivateAccountServlet.java:ActivateAccountServlet",
+        "file:src/main/java/vn/edu/hmu/controller/AdminSupportServlet.java",
+        "class:src/main/java/vn/edu/hmu/controller/AdminSupportServlet.java:AdminSupportServlet",
+        "file:src/main/java/vn/edu/hmu/controller/AutoActivationServlet.java",
+        "class:src/main/java/vn/edu/hmu/controller/AutoActivationServlet.java:AutoActivationServlet",
+        "file:src/main/java/vn/edu/hmu/controller/CreateStudentServlet.java",
+        "class:src/main/java/vn/edu/hmu/controller/CreateStudentServlet.java:CreateStudentServlet",
+        "file:src/main/java/vn/edu/hmu/controller/DashboardServlet.java",
+        "class:src/main/java/vn/edu/hmu/controller/DashboardServlet.java:DashboardServlet",
+        "file:src/main/java/vn/edu/hmu/controller/DeleteAccountServlet.java",
+        "class:src/main/java/vn/edu/hmu/controller/DeleteAccountServlet.java:DeleteAccountServlet",
+        "file:src/main/java/vn/edu/hmu/controller/ForgotPasswordServlet.java",
+        "class:src/main/java/vn/edu/hmu/controller/ForgotPasswordServlet.java:ForgotPasswordServlet",
+        "file:src/main/java/vn/edu/hmu/controller/ImportExcelServlet.java",
+        "class:src/main/java/vn/edu/hmu/controller/ImportExcelServlet.java:ImportExcelServlet",
+        "file:src/main/java/vn/edu/hmu/controller/ITServicesServlet.java",
+        "class:src/main/java/vn/edu/hmu/controller/ITServicesServlet.java:ITServicesServlet",
+        "file:src/main/java/vn/edu/hmu/controller/LoginServlet.java",
+        "class:src/main/java/vn/edu/hmu/controller/LoginServlet.java:LoginServlet",
+        "file:src/main/java/vn/edu/hmu/controller/LogoutServlet.java",
+        "class:src/main/java/vn/edu/hmu/controller/LogoutServlet.java:LogoutServlet",
+        "file:src/main/java/vn/edu/hmu/controller/PersonalInfoServlet.java",
+        "class:src/main/java/vn/edu/hmu/controller/PersonalInfoServlet.java:PersonalInfoServlet",
+        "file:src/main/java/vn/edu/hmu/controller/ResetDataServlet.java",
+        "class:src/main/java/vn/edu/hmu/controller/ResetDataServlet.java:ResetDataServlet",
+        "file:src/main/java/vn/edu/hmu/controller/RestoreAccountServlet.java",
+        "class:src/main/java/vn/edu/hmu/controller/RestoreAccountServlet.java:RestoreAccountServlet",
+        "file:src/main/java/vn/edu/hmu/controller/SearchAccountServlet.java",
+        "class:src/main/java/vn/edu/hmu/controller/SearchAccountServlet.java:SearchAccountServlet",
+        "file:src/main/java/vn/edu/hmu/controller/SupportServlet.java",
+        "class:src/main/java/vn/edu/hmu/controller/SupportServlet.java:SupportServlet",
+        "file:src/main/java/vn/edu/hmu/controller/SuspendAccountServlet.java",
+        "class:src/main/java/vn/edu/hmu/controller/SuspendAccountServlet.java:SuspendAccountServlet",
+        "file:src/main/java/vn/edu/hmu/controller/SyncSSOServlet.java",
+        "class:src/main/java/vn/edu/hmu/controller/SyncSSOServlet.java:SyncSSOServlet",
+        "file:src/main/java/vn/edu/hmu/controller/TestAutoActivationServlet.java",
+        "class:src/main/java/vn/edu/hmu/controller/TestAutoActivationServlet.java:TestAutoActivationServlet",
+        "file:src/main/java/vn/edu/hmu/controller/UpdateStudentServlet.java",
+        "class:src/main/java/vn/edu/hmu/controller/UpdateStudentServlet.java:UpdateStudentServlet"
+      ]
+    },
+    {
+      "id": "layer:data",
+      "name": "Data Access Layer",
+      "description": "Manages database interactions and connectivity via DAOs.",
+      "nodeIds": [
+        "file:src/main/java/vn/edu/hmu/dao/AdminDAO.java",
+        "class:src/main/java/vn/edu/hmu/dao/AdminDAO.java:AdminDAO",
+        "file:src/main/java/vn/edu/hmu/dao/StudentDAO.java",
+        "class:src/main/java/vn/edu/hmu/dao/StudentDAO.java:StudentDAO",
+        "file:src/main/java/vn/edu/hmu/dao/SupportRequestDAO.java",
+        "class:src/main/java/vn/edu/hmu/dao/SupportRequestDAO.java:SupportRequestDAO",
+        "file:src/main/java/vn/edu/hmu/util/DBConnection.java",
+        "class:src/main/java/vn/edu/hmu/util/DBConnection.java:DBConnection"
+      ]
+    },
+    {
+      "id": "layer:model",
+      "name": "Domain Model Layer",
+      "description": "Defines the core business entities and data structures.",
+      "nodeIds": [
+        "file:src/main/java/vn/edu/hmu/model/ActionLog.java",
+        "class:src/main/java/vn/edu/hmu/model/ActionLog.java:ActionLog",
+        "file:src/main/java/vn/edu/hmu/model/Email.java",
+        "class:src/main/java/vn/edu/hmu/model/Email.java:Email",
+        "file:src/main/java/vn/edu/hmu/model/EmailAccount.java",
+        "class:src/main/java/vn/edu/hmu/model/EmailAccount.java:EmailAccount",
+        "file:src/main/java/vn/edu/hmu/model/ITAdmin.java",
+        "class:src/main/java/vn/edu/hmu/model/ITAdmin.java:ITAdmin",
+        "file:src/main/java/vn/edu/hmu/model/Student.java",
+        "class:src/main/java/vn/edu/hmu/model/Student.java:Student",
+        "file:src/main/java/vn/edu/hmu/model/SupportRequest.java",
+        "class:src/main/java/vn/edu/hmu/model/SupportRequest.java:SupportRequest"
+      ]
+    },
+    {
+      "id": "layer:ui",
+      "name": "User Interface Layer",
+      "description": "Handles the presentation logic and client-side interactions.",
+      "nodeIds": [
+        "file:src/main/webapp/admin-support.jsp",
+        "file:src/main/webapp/admissions.jsp",
+        "file:src/main/webapp/dashboard.jsp",
+        "file:src/main/webapp/first-login.jsp",
+        "file:src/main/webapp/forgot-password.jsp",
+        "file:src/main/webapp/index.jsp",
+        "file:src/main/webapp/it-services.jsp",
+        "file:src/main/webapp/login.jsp",
+        "file:src/main/webapp/personal-info.jsp",
+        "file:src/main/webapp/student-portal.jsp",
+        "file:src/main/webapp/support.jsp",
+        "file:src/main/webapp/js/main.js"
+      ]
+    },
+    {
+      "id": "layer:utility",
+      "name": "Utility Layer",
+      "description": "Provides reusable helper methods and cross-cutting services.",
+      "nodeIds": [
+        "file:src/main/java/vn/edu/hmu/util/AccountGenerator.java",
+        "class:src/main/java/vn/edu/hmu/util/AccountGenerator.java:AccountGenerator",
+        "file:src/main/java/vn/edu/hmu/util/EmailService.java",
+        "class:src/main/java/vn/edu/hmu/util/EmailService.java:EmailService"
+      ]
+    },
+    {
+      "id": "layer:config",
+      "name": "Configuration Layer",
+      "description": "Project-level configuration for build, deployment, and environment.",
+      "nodeIds": [
+        "file:.gitignore",
+        "file:pom.xml",
+        "file:src/main/webapp/WEB-INF/web.xml"
+      ]
+    }
+  ],
+  "tour": [
+    {
+      "order": 1,
+      "title": "Project Introduction",
+      "description": "The HMU student email management system is a Maven-based Java web application. It manages the lifecycle of student institutional emails, including creation, activation, suspension, and deletion. The pom.xml file defines dependencies like MySQL for data storage, Apache POI for Excel processing, and JavaMail for communication.",
+      "nodeIds": [
+        "file:pom.xml"
+      ]
+    },
+    {
+      "order": 2,
+      "title": "Authentication Flow",
+      "description": "The system handles authentication for both administrators and students. LoginServlet manages the login logic, verifying credentials against the database via DAOs. The login.jsp provides the user interface for entry into the system.",
+      "nodeIds": [
+        "file:src/main/java/vn/edu/hmu/controller/LoginServlet.java",
+        "class:src/main/java/vn/edu/hmu/controller/LoginServlet.java:LoginServlet",
+        "file:src/main/webapp/login.jsp"
+      ]
+    },
+    {
+      "order": 3,
+      "title": "Main Dashboard",
+      "description": "The admin dashboard is the central hub for account management. DashboardServlet retrieves system statistics and logs, which are rendered by dashboard.jsp. Interactive features like account searching and status updates are handled by main.js via AJAX calls.",
+      "nodeIds": [
+        "file:src/main/java/vn/edu/hmu/controller/DashboardServlet.java",
+        "class:src/main/java/vn/edu/hmu/controller/DashboardServlet.java:DashboardServlet",
+        "file:src/main/webapp/dashboard.jsp",
+        "file:src/main/webapp/js/main.js"
+      ]
+    },
+    {
+      "order": 4,
+      "title": "Data Management & Synchronization",
+      "description": "Core business logic for student and email data is encapsulated in StudentDAO. For bulk operations, ImportExcelServlet utilizes Apache POI to parse student lists from Excel files. The system also includes SyncSSOServlet to simulate synchronization with Single Sign-On providers.",
+      "nodeIds": [
+        "file:src/main/java/vn/edu/hmu/dao/StudentDAO.java",
+        "class:src/main/java/vn/edu/hmu/dao/StudentDAO.java:StudentDAO",
+        "file:src/main/java/vn/edu/hmu/controller/ImportExcelServlet.java",
+        "class:src/main/java/vn/edu/hmu/controller/ImportExcelServlet.java:ImportExcelServlet",
+        "file:src/main/java/vn/edu/hmu/controller/SyncSSOServlet.java",
+        "class:src/main/java/vn/edu/hmu/controller/SyncSSOServlet.java:SyncSSOServlet"
+      ]
+    },
+    {
+      "order": 5,
+      "title": "Utility Services",
+      "description": "The system relies on utility services for automated tasks. AccountGenerator provides logic for creating standardized institutional email addresses and secure default passwords. EmailService handles the delivery of welcome messages and password recovery instructions using the JavaMail API.",
+      "nodeIds": [
+        "file:src/main/java/vn/edu/hmu/util/EmailService.java",
+        "class:src/main/java/vn/edu/hmu/util/EmailService.java:EmailService",
+        "file:src/main/java/vn/edu/hmu/util/AccountGenerator.java",
+        "class:src/main/java/vn/edu/hmu/util/AccountGenerator.java:AccountGenerator"
+      ]
+    }
+  ]
+}
