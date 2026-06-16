@@ -22,7 +22,8 @@ public class NotificationDAO {
                      "title VARCHAR(255) NOT NULL, " +
                      "message TEXT NOT NULL, " +
                      "created_at DATETIME DEFAULT CURRENT_TIMESTAMP, " +
-                     "is_read TINYINT(1) DEFAULT 0" +
+                     "is_read TINYINT(1) DEFAULT 0, " +
+                     "CONSTRAINT fk_notification_student FOREIGN KEY (student_id) REFERENCES email_accounts(student_id) ON DELETE CASCADE" +
                      ")";
         try (Connection conn = DBConnection.getConnection();
              Statement stmt = conn.createStatement()) {
