@@ -10,21 +10,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root { --primary: #0056b3; --accent: #3b82f6; --text: #111827; --secondary: #6c757d; }
-        body { font-family: 'Be Vietnam Pro', sans-serif; line-height: 1.6; color: var(--text); background-color: #f4f7f6; margin: 0; }
+        body { font-family: 'Be Vietnam Pro', sans-serif; line-height: 1.6; color: var(--text); background-color: #f4f7f6; margin: 0; overflow-y: scroll; }
         
-        /* Header */
-        header { background: #fff; padding: 20px 5%; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .logo-section h1 { font-size: 24px; color: var(--primary); font-weight: 800; }
-        .login-btn { padding: 10px 20px; background: var(--accent); color: #fff; text-decoration: none; border-radius: 8px; font-weight: 600; transition: 0.3s; }
-        .login-btn:hover { background: #2563eb; }
-        .user-info { font-size: 14px; color: var(--secondary); margin-right: 15px; }
-
-        /* Navigation Taskbar */
-        nav { background: var(--primary); color: #fff; padding: 0 5%; }
-        nav ul { list-style: none; display: flex; }
-        nav ul li a { display: block; padding: 15px 20px; color: #fff; text-decoration: none; font-weight: 500; transition: 0.3s; }
-        nav ul li a:hover { background: rgba(255,255,255,0.1); }
-
         .container { max-width: 1000px; margin: 30px auto; display: grid; grid-template-columns: 1fr 2fr; gap: 30px; }
         .contact-info { background: #fff; padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
         .support-form { background: #fff; padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
@@ -48,39 +35,7 @@
     </style>
 </head>
 <body>
-    <header>
-        <div class="logo-section">
-            <h1>Trường Đại học Y Hà Nội</h1>
-        </div>
-        <div>
-            <% 
-                EmailAccount user = (EmailAccount) session.getAttribute("user");
-                ITAdmin admin = (ITAdmin) session.getAttribute("currentAdmin");
-                if (user != null || admin != null) {
-                    String name = (user != null) ? user.getStudentId() : admin.getFullName();
-                    String dashboardLink = (admin != null) ? "dashboard" : "student-portal.jsp";
-            %>
-                <span class="user-info">Xin chào, <strong><%= name %></strong></span>
-                <a href="<%= dashboardLink %>" class="login-btn">Vào hệ thống</a>
-                <a href="logout" class="login-btn" style="background-color: #ef4444; margin-left: 10px;">Đăng xuất</a>
-            <% } else { %>
-                <a href="login.jsp" class="login-btn">Đăng nhập</a>
-            <% } %>
-        </div>
-    </header>
-
-    <nav>
-        <ul>
-            <li><a href="index.jsp">Trang chủ</a></li>
-            <li><a href="admissions.jsp">Tuyển sinh - Đào tạo</a></li>
-            <li><a href="it-services">Hệ thống và dịch vụ CNTT</a></li>
-            <li><a href="support">Liên hệ hỗ trợ</a></li>
-            <% if (user != null) { %>
-                <li><a href="personal-info">Thông tin cá nhân</a></li>
-                <li><a href="student-portal.jsp">Tài khoản Email</a></li>
-            <% } %>
-        </ul>
-    </nav>
+    <jsp:include page="components/header.jsp" />
     <div class="container">
         <aside class="contact-info">
             <h2>Thông tin liên hệ</h2>
@@ -101,7 +56,7 @@
         <main class="support-form">
             <h2>Gửi yêu cầu hỗ trợ</h2>
             
-            <% if (user != null || admin != null) { %>
+            <% if (session.getAttribute("user") != null || session.getAttribute("currentAdmin") != null) { %>
                 <% if (request.getAttribute("message") != null) { %>
                     <div class="alert alert-success"><%= request.getAttribute("message") %></div>
                 <% } %>

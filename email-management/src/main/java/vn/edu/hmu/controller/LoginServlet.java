@@ -51,7 +51,10 @@ public class LoginServlet extends HttpServlet {
             session.setAttribute("user", acc);
 
             // KIỂM TRA FR-01.5: Đăng nhập lần đầu -> Bắt đổi mật khẩu
-            if (acc.getStatus() == 0) {
+            // (kể cả khi AutoActivationTask đã chuyển status = 1, sinh viên vẫn phải đổi mật khẩu mặc định)
+            boolean isDefaultPassword = acc.getPasswordHash() != null && acc.getPasswordHash().startsWith("Hmu@") && acc.getPasswordHash().length() == 10;
+            
+            if (acc.getStatus() == 0 || isDefaultPassword) {
                 response.sendRedirect("first-login.jsp"); 
             } 
             // KIỂM TRA TÀI KHOẢN KHÓA
@@ -61,8 +64,8 @@ public class LoginServlet extends HttpServlet {
             }
             // TRẠNG THÁI BÌNH THƯỜNG (Status = 1)
             else {
-                // Sinh viên bình thường thì cho về trang chủ chính
-                response.sendRedirect("index.jsp"); 
+                // Sinh viên thì cho về trang Dashboard sinh viên
+                response.sendRedirect("student-portal.jsp"); 
             }
             return; // Dừng hàm
         } 

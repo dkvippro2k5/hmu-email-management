@@ -64,10 +64,23 @@ public class BatchSuspendServlet extends HttpServlet {
                 if (row == null) continue;
 
                 try {
-                    // Cấu trúc file: 0: Họ tên, 1: Email, 2: Mã SV, 3: Niên khóa
-                    String fullName = getSafeString(row.getCell(0));
-                    String email = getSafeString(row.getCell(1));
-                    String studentId = getSafeString(row.getCell(2));
+                    // Cấu trúc file: 0: STT, 1: Họ tên, 2: Niên khóa, 3: Mã SV, 4: Email (nhưng ta sẽ tìm tự động)
+                    String fullName = getSafeString(row.getCell(1));
+                    String col2 = getSafeString(row.getCell(2));
+                    String col3 = getSafeString(row.getCell(3));
+                    String col4 = getSafeString(row.getCell(4));
+                    
+                    String email = "";
+                    String studentId = "";
+                    
+                    // Tìm email và mã SV trong các cột 2, 3, 4
+                    if (col2.contains("@")) email = col2;
+                    else if (col3.contains("@")) email = col3;
+                    else if (col4.contains("@")) email = col4;
+                    
+                    if (!col2.contains("@") && col2.matches(".*\\d.*") && !col2.contains("-")) studentId = col2;
+                    else if (!col3.contains("@") && col3.matches(".*\\d.*") && !col3.contains("-")) studentId = col3;
+                    else if (!col4.contains("@") && col4.matches(".*\\d.*") && !col4.contains("-")) studentId = col4;
 
                     if (email.isEmpty() || studentId.isEmpty()) {
                         errorMessages.add("Dòng " + (i+1) + ": Bị bỏ qua do thiếu Email hoặc Mã SV. (Email: '" + email + "', Mã SV: '" + studentId + "')");
@@ -125,7 +138,14 @@ public class BatchSuspendServlet extends HttpServlet {
                     finalMsg.append("- ").append(err).append("<br>");
                     count++;
                 }
-                request.getSession().setAttribute("errorMsg", finalMsg.toString());
+                
+                if (successCount > 0) {
+                    // Nếu có ít nhất 1 thành công thì báo viền xanh (Success) kèm theo danh sách lỗi bên trong
+                    request.getSession().setAttribute("successMsg", finalMsg.toString());
+                } else {
+                    // Nếu hoàn toàn thất bại (0 thành công) thì báo viền đỏ (Error)
+                    request.getSession().setAttribute("errorMsg", finalMsg.toString());
+                }
             } else if (successCount > 0) {
                 request.getSession().setAttribute("successMsg", finalMsg.toString());
             }

@@ -29,28 +29,6 @@
 
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-        body {
-            font-family: 'Be Vietnam Pro', 'Arial', sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-
-        /* Standard Header */
-        header { background: #fff; padding: 20px 5%; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .logo-section h1 { font-size: 24px; color: var(--primary); font-weight: 800; }
-        .login-btn { padding: 10px 20px; background: var(--accent); color: #fff; text-decoration: none; border-radius: 8px; font-weight: 600; transition: 0.3s; }
-        .login-btn:hover { background: #2563eb; }
-        .user-info { font-size: 14px; color: var(--secondary); margin-right: 15px; }
-
-        /* Standard Navigation Taskbar */
-        nav { background: var(--primary); color: #fff; padding: 0 5%; }
-        nav ul { list-style: none; display: flex; }
-        nav ul li a { display: block; padding: 15px 20px; color: #fff; text-decoration: none; font-weight: 500; transition: 0.3s; }
-        nav ul li a:hover { background: rgba(255,255,255,0.1); }
-
         /* MAIN CONTENT */
         .main-container {
             flex: 1;
@@ -169,48 +147,12 @@
             font-weight: 600;
         }
 
-        .footer a:hover {
-            text-decoration: underline;
-        }
     </style>
 </head>
 <body>
+    <jsp:include page="components/header.jsp" />
 
-    <header>
-        <div class="logo-section">
-            <h1>Trường Đại học Y Hà Nội</h1>
-        </div>
-        <div>
-            <% 
-                EmailAccount user = (EmailAccount) session.getAttribute("user");
-                ITAdmin admin = (ITAdmin) session.getAttribute("currentAdmin");
-                if (user != null || admin != null) {
-                    String name = (user != null) ? user.getStudentId() : admin.getFullName();
-                    String dashboardLink = (admin != null) ? "dashboard" : "student-portal.jsp";
-            %>
-                <span class="user-info">Xin chào, <strong><%= name %></strong></span>
-                <a href="<%= dashboardLink %>" class="login-btn">Vào hệ thống</a>
-                <a href="logout" class="login-btn" style="background-color: #ef4444; margin-left: 10px;">Đăng xuất</a>
-            <% } else { %>
-                <a href="login.jsp" class="login-btn">Đăng nhập</a>
-            <% } %>
-        </div>
-    </header>
-
-    <nav>
-        <ul>
-            <li><a href="index.jsp">Trang chủ</a></li>
-            <li><a href="admissions.jsp">Tuyển sinh - Đào tạo</a></li>
-            <li><a href="it-services">Hệ thống và dịch vụ CNTT</a></li>
-            <li><a href="support">Liên hệ hỗ trợ</a></li>
-            <% if (user != null) { %>
-                <li><a href="personal-info">Thông tin cá nhân</a></li>
-                <li><a href="student-portal.jsp">Tài khoản Email</a></li>
-            <% } %>
-        </ul>
-    </nav>
-
-    <main class="main-container">
+    <main class="main-container" style="flex-direction: column; align-items: center; gap: 20px;">
         <div class="portal-card">
             <div class="card-header">
                 <h3>🎓 Thông tin Tài khoản Email</h3>
@@ -248,6 +190,7 @@
     <footer style="background: #343a40; color: #fff; padding: 20px; text-align: center; margin-top: auto;">
         <p>&copy; 2026 Trường Đại học Y Hà Nội. All rights reserved.</p>
     </footer>
+
 
 </body>
 </html>

@@ -1,6 +1,7 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <%@ page isELIgnored="false" %>
 <!DOCTYPE html>
 <html lang="vi">
@@ -9,6 +10,38 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Student Email Management - HMU</title>
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <script>
+        // Xử lý Hash URL ngay lập tức trước khi render DOM để loại bỏ hoàn toàn hiện tượng chớp nháy (Flash)
+        document.addEventListener('DOMContentLoaded', function() {
+            let hash = window.location.hash.substring(1);
+            let modName = (hash && hash.startsWith('page-')) ? hash.replace('page-', '') : 'list';
+            
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+            
+            let activePage = document.getElementById('page-' + modName);
+            if(activePage) activePage.classList.add('active');
+            
+            let activeNav = document.querySelector('.nav-item[onclick*="' + modName + '"]');
+            if(activeNav) activeNav.classList.add('active');
+            
+            const titles = {
+                dashboard: 'Bảng điều khiển <span>/ Tổng quan hệ thống</span>',
+                list: 'Danh sách tài khoản <span>/ Quản lý email</span>',
+                revoke: 'Thu hồi tài khoản <span>/ Xử lý thu hồi</span>',
+                archive: 'Bảo lưu tài khoản <span>/ Quản lý bảo lưu</span>',
+                import: 'Import danh sách <span>/ Quản lý tệp dữ liệu</span>',
+                log: 'Nhật ký hoạt động <span>/ Log hệ thống</span>',
+                support: 'Support <span>/ Yêu cầu hỗ trợ</span>',
+                notify: 'Gửi thông báo nâng cao <span>/ Nhắn tin hàng loạt</span>'
+            };
+            let titleEl = document.getElementById('pageTitle');
+            if (titleEl) {
+                titleEl.innerHTML = titles[modName] || modName;
+            }
+        });
+    </script>
     
     <style>
         /* ================= BIẾN CSS (SÁNG & HIỆN ĐẠI) ================= */
@@ -928,7 +961,7 @@ tr:hover td {
                 <span class="nav-icon">📊</span> Bảng điều khiển
             </a>
             
-            <a href="admin-support" class="nav-item">
+            <a class="nav-item" onclick="showModule('support', this)">
                 <span class="nav-icon">🎧</span> Yêu cầu hỗ trợ
                 <c:if test="${unreadSupportCount > 0}">
                     <span style="background:var(--red); color:#fff; font-size:10px; padding:2px 6px; border-radius:10px; margin-left: auto;">${unreadSupportCount}</span>
@@ -947,9 +980,6 @@ tr:hover td {
             </a>
 
             <div class="nav-section-label">Quản lý</div>
-            <a class="nav-item" onclick="showModule('import', this)">
-                <span class="nav-icon">📥</span> Import danh sách
-            </a>
             <a class="nav-item" onclick="showModule('notify', this)">
                 <span class="nav-icon">📢</span> Gửi thông báo
             </a>
@@ -967,7 +997,8 @@ tr:hover td {
     <main class="main-content">
         <header class="topbar">
             <div class="page-title" id="pageTitle">Danh sách tài khoản <span>/ Quản lý email</span></div>
-            <div class="user-info">
+            <div class="user-info" style="display: flex; gap: 15px; align-items: center;">
+                <button class="btn btn-warning" style="padding: 6px 12px; font-size: 13px;" onclick="showToast('Đồng bộ thành công','success')">🔄 Đồng bộ SSO</button>
                 <span>Cán bộ: <b>Admin IT</b></span>
                 <div class="avatar">A</div>
             </div>
@@ -983,7 +1014,7 @@ tr:hover td {
         </c:if>
 
         <!-- ================= MODULE 1: DANH SÁCH TÀI KHOẢN ================= -->
-        <div class="page active" id="page-list">
+        <div class="page" id="page-list">
             
             <div class="action-bar">
                 <div style="display: flex; gap: 10px; align-items: center;">
@@ -1053,11 +1084,9 @@ tr:hover td {
                         <input type="file" id="excelFileInput" name="excelFile" accept=".xlsx" onchange="confirmAndImport(event)">
                     </form>
                     
-                    <button class="btn btn-warning" onclick="showToast('Đồng bộ thành công','success')">🔄 Đồng bộ SSO</button>
                     <button class="btn btn-primary" type="button" onclick="document.getElementById('excelFileInput').click()">📂 Import File (M.01)</button>
                     <button class="btn btn-primary" type="button" onclick="openCreateModal()">➕ Thêm sinh viên</button>
-                    <button id="btnResetAll" class="btn btn-danger" type="button" onclick="openResetModal()">♻️ Reset toàn bộ dữ liệu</button>
-                    <button class="btn btn-outline" type="button" onclick="showToast('Đang tạo báo cáo Excel...', 'success')">📥 Xuất Excel</button>
+                    <button class="btn btn-outline" type="button" onclick="openExportModal()">📥 Xuất Excel</button>
                 </div>
             </div>
 
@@ -1229,37 +1258,360 @@ tr:hover td {
                 </div>
             </div>
         </div>
-        <div class="page" id="page-revoke"><div style="margin:auto; color:var(--text3);"><h2>🔒 Giao diện Thu hồi tài khoản</h2></div></div>
-        <div class="page" id="page-archive">
-            <div class="action-bar" style="margin-bottom: 20px;">
-                <div style="flex: 1;">
-                    <h2 class="page-title">📦 Bảo lưu tài khoản hàng loạt</h2>
-                    <p style="color: var(--text2); margin-top: 8px; font-size: 13px;">Tải lên danh sách sinh viên (Excel) cần bảo lưu tài khoản. Cấu trúc yêu cầu: Cột 1 (Họ tên), Cột 2 (Email), Cột 3 (Mã SV), Cột 4 (Niên khóa).</p>
+        <!-- TRANG THU HỒI TÀI KHOẢN -->
+        <div class="page" id="page-revoke">
+            <div class="page-header" style="flex-wrap: wrap; gap: 15px;">
+
+                
+                <div style="display: flex; gap: 10px; align-items: center; background: var(--surface); padding: 10px 15px; border-radius: 10px; border: 1px solid var(--border); width: 100%; max-width: 600px; margin-right: auto;">
+                    <form action="${pageContext.request.contextPath}/batch-revoke" method="post" enctype="multipart/form-data" style="display: flex; gap: 10px; width: 100%; align-items: center;">
+                        <input type="file" name="excelFile" accept=".xls,.xlsx" required class="input" style="flex: 1; padding: 6px;">
+                        <button type="submit" class="btn btn-primary" style="white-space: nowrap; padding: 8px 16px;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/><path d="M7.646 1.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 2.707V11.5a.5.5 0 0 1-1 0V2.707L5.354 4.854a.5.5 0 1 1-.708-.708l3-3z"/></svg> 
+                            Tải lên (Thu hồi)
+                        </button>
+                    </form>
+                </div>
+                
+                <button class="btn" style="background: var(--surface); border: 1px solid var(--border); margin-left: auto;" onclick="exportRevokedToPDF()">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style="margin-right:6px; color:var(--red)"><path fill-rule="evenodd" d="M14 4.5V14a2 2 0 0 1-2 2h-1v-1h1a1 1 0 0 0 1-1V4.5h-2A1.5 1.5 0 0 1 9.5 3V1H4a1 1 0 0 0-1 1v9H2V2a2 2 0 0 1 2-2h5.5L14 4.5ZM1.6 11.85H0v3.999h.791v-1.342h.803c.287 0 .531-.057.732-.173.203-.117.358-.275.463-.474a1.42 1.42 0 0 0 .161-.677c0-.25-.053-.476-.158-.677a1.176 1.176 0 0 0-.46-.477c-.2-.12-.443-.179-.732-.179Zm.545 1.333a.795.795 0 0 1-.085.38.574.574 0 0 1-.238.241.794.794 0 0 1-.375.082H.788V12.48h.66c.218 0 .389.06.512.181.123.122.185.296.185.522Zm1.217-1.333v3.999h1.46c.401 0 .734-.08.998-.237a1.45 1.45 0 0 0 .595-.689c.13-.3.196-.662.196-1.084 0-.42-.065-.778-.196-1.075a1.426 1.426 0 0 0-.589-.68c-.264-.156-.599-.234-1.005-.234H3.362Zm.791.645h.563c.249 0 .45.05.603.151.155.101.264.246.326.435.062.188.093.414.093.678 0 .265-.031.492-.093.68-.062.188-.171.333-.326.434-.153.1-.354.152-.603.152h-.563v-2.53ZM6.764 11.85v3.999h.791v-1.632h1.474v-.645H7.555v-1.077h1.666v-.645H6.764Z"/></svg>
+                    Xuất danh sách PDF
+                </button>
+            </div>
+
+            <!-- Khối hướng dẫn -->
+            <div style="background: rgba(245, 158, 11, 0.05); border: 1px solid rgba(245, 158, 11, 0.2); border-left: 4px solid #d97706; border-radius: 8px; padding: 16px; margin: 0 24px 24px 24px;">
+                <h4 style="color: #b45309; margin-bottom: 8px; font-weight: 600;">⚠️ Quy định Thu hồi tài khoản</h4>
+                <ul style="margin-left: 20px; color: var(--text2); line-height: 1.6; font-size: 14px;">
+                    <li><strong style="color: var(--text);">Thông báo tự động:</strong> Hệ thống tự động gửi mail thông báo đến học viên/sinh viên về việc thu hồi email tên miền <em>hmu.edu.vn</em>.</li>
+                    <li><strong style="color: var(--text);">Thời hạn xóa vĩnh viễn:</strong> Sau <strong>30 ngày</strong> tính từ ngày hệ thống ghi nhận thu hồi (upload danh sách), tài khoản email sẽ tự động bị xóa khỏi hệ thống.</li>
+                    <li><strong style="color: var(--text);">Yêu cầu sao lưu:</strong> Đề nghị học viên/sinh viên backup (sao lưu) dữ liệu sang địa chỉ mail khác hoặc lưu trữ về máy tính cá nhân (PL.01.CNTT&TT.09).</li>
+                    <li style="margin-top: 8px; list-style: none;">
+                        <div style="background: var(--surface); padding: 10px 15px; border-radius: 6px; border: 1px solid var(--border); display: inline-block;">
+                            <strong style="color: var(--text);">📞 Hỗ trợ kỹ thuật:</strong> Phòng CNTT&TT - P.320, tầng 3, nhà A1<br>
+                            <strong style="color: var(--text);">ĐT:</strong> 024 38523798 (#3198) &nbsp;|&nbsp; <strong style="color: var(--text);">Email:</strong> support@hmu.edu.vn
+                        </div>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Bảng danh sách chờ xóa -->
+            <div class="card" style="margin: 0 24px 24px 24px;">
+                <div style="padding: 20px 24px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+                    <h3 style="font-size: 15px; font-weight: 700; color: var(--text);">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style="margin-right: 8px; color: var(--text3);"><path d="M14 1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h12zM2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2z"/><path d="M4 4.5a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-7a.5.5 0 0 1-.5-.5v-1zM4 8.5a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-7a.5.5 0 0 1-.5-.5v-1z"/></svg>
+                        Danh sách tài khoản chờ thu hồi
+                    </h3>
+                    
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <div class="search-box">
+                            <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/></svg>
+                            <input type="text" id="revokeSearchInput" class="search-input" placeholder="Tìm theo tên, email, mssv..." onkeyup="debounceRevokeSearch()">
+                            <svg id="revokeSearchLoading" class="search-icon" style="display: none; right: 12px; left: auto; animation: spin 1s linear infinite;" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"/></svg>
+                        </div>
+                        
+                        <div class="filter-container">
+                            <button id="btnRevokeFilterToggle" class="btn" style="background: var(--surface); border: 1px solid var(--border);" onclick="toggleRevokeFilterPanel()">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M1.5 1.5A.5.5 0 0 1 2 1h12a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.128.334L10 8.692V13.5a.5.5 0 0 1-.342.474l-3 1A.5.5 0 0 1 6 14.5V8.692L1.628 3.834A.5.5 0 0 1 1.5 3.5v-2zm1 .5v1.308l4.372 4.858A.5.5 0 0 1 7 8.5v5.306l2-.666V8.5a.5.5 0 0 1 .128-.334L13.5 3.308V2h-11z"/></svg>
+                                Lọc <span id="revokeFilterCountBadge" class="filter-badge">0</span>
+                            </button>
+                            
+                            <div id="revokeFilterPanel" class="filter-panel">
+                                <div class="filter-header">
+                                    <span class="filter-title">Lọc tài khoản chờ thu hồi</span>
+                                    <button class="btn" style="padding: 4px; border:none; background:transparent" onclick="toggleRevokeFilterPanel()">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/></svg>
+                                    </button>
+                                </div>
+                                <div class="form-group" style="margin:0">
+                                    <label class="form-label">Lớp</label>
+                                    <input type="text" id="revokeFilterClass" class="input" placeholder="VD: YK4" onkeyup="if(event.key==='Enter') applyRevokeFilters()">
+                                </div>
+                                <div class="form-group" style="margin:0">
+                                    <label class="form-label">Khoa</label>
+                                    <input type="text" id="revokeFilterDept" class="input" placeholder="VD: Y đa khoa" onkeyup="if(event.key==='Enter') applyRevokeFilters()">
+                                </div>
+                                <div class="form-group" style="margin:0">
+                                    <label class="form-label">Chuyên ngành</label>
+                                    <input type="text" id="revokeFilterMajor" class="input" placeholder="VD: Nội khoa" onkeyup="if(event.key==='Enter') applyRevokeFilters()">
+                                </div>
+                                <div class="form-group" style="margin:0">
+                                    <label class="form-label">Niên khóa</label>
+                                    <input type="text" id="revokeFilterCohort" class="input" placeholder="VD: 2020-2026" onkeyup="if(event.key==='Enter') applyRevokeFilters()">
+                                </div>
+                                <div class="filter-footer">
+                                    <button class="btn" style="background: var(--surface2); border: 1px solid var(--border);" onclick="resetRevokeFilters()">Bỏ lọc</button>
+                                    <button class="btn btn-primary" onclick="applyRevokeFilters()">Áp dụng</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <table class="table" id="revokeTable">
+                        <thead>
+                            <tr>
+                                <th>Địa chỉ Email</th>
+                                <th>Mã Sinh Viên</th>
+                                <th>Họ & Tên</th>
+                                <th>Lớp</th>
+                                <th>Ngày tạo</th>
+                                <th>Lịch xóa</th>
+                                <th>Trạng thái</th>
+                                <th style="text-align: right; width: 100px;">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="revokeTbody">
+                            <c:forEach var="acc" items="${dsThuHoi}">
+                                <tr>
+                                    <td><div style="font-weight: 500;">${acc.emailAddress}</div></td>
+                                    <td style="color: var(--text2);">${acc.studentId}</td>
+                                    <td>${acc.studentName}</td>
+                                    <td>${acc.className}</td>
+                                    <td><fmt:formatDate value="${acc.activationDate}" pattern="dd/MM/yyyy" /></td>
+                                    <td>
+                                        <c:if test="${not empty acc.scheduledDeleteDate}">
+                                            <span style="color: #d97706; font-weight: 500; display: inline-flex; align-items: center; gap: 4px;">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 16 16"><path d="M8 3.5a.5.5 0 0 0-1 0V9a.5.5 0 0 0 .252.434l3.5 2a.5.5 0 0 0 .496-.868L8 8.71V3.5z"/><path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm7-8A7 7 0 1 1 1 8a7 7 0 0 1 14 0z"/></svg>
+                                                <fmt:formatDate value="${acc.scheduledDeleteDate}" pattern="dd/MM/yyyy" />
+                                            </span>
+                                        </c:if>
+                                        <c:if test="${empty acc.scheduledDeleteDate}">
+                                            <span style="color: var(--text3);">Chưa lên lịch</span>
+                                        </c:if>
+                                    </td>
+                                    <td><span class="badge" style="background: rgba(245, 158, 11, 0.1); color: #d97706; border-color: rgba(245, 158, 11, 0.2);">Chờ xóa</span></td>
+                                    <td style="text-align: right;">
+                                        <button class="action-btn" title="Hủy xóa (Khôi phục)" onclick="restoreAccount('${acc.studentId}')" style="color: #059669; background: rgba(16, 185, 129, 0.1);">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16"><path d="M9.302 1.256a1.5 1.5 0 0 0-2.604 0l-1.704 2.98a.5.5 0 0 0 .869.497l1.703-2.981a.5.5 0 0 1 .868 0l2.54 4.444-1.256-.337a.5.5 0 1 0-.26.966l2.415.647a.5.5 0 0 0 .613-.353l.647-2.415a.5.5 0 1 0-.966-.259l-.333 1.242-2.532-4.431zM2.973 7.773l-1.255.337a.5.5 0 1 1-.26-.966l2.416-.647a.5.5 0 0 1 .612.353l.647 2.415a.5.5 0 0 1-.966.259l-.333-1.242-2.545 4.454a.5.5 0 0 0 .434.748H5a.5.5 0 0 1 0 1H1.723A1.5 1.5 0 0 1 .421 12.24l2.552-4.467zm10.89 1.463a.5.5 0 1 0-.868.496l1.716 3.004a.5.5 0 0 1-.434.748h-2.56l.34-.85a.5.5 0 1 0-.928-.372l-.636 1.58a.5.5 0 0 0 .373.636l1.58.636a.5.5 0 0 0 .372-.928l-.855-.34h2.56a1.5 1.5 0 0 0 1.302-2.244l-1.716-3.004z"/></svg>
+                                        </button>
+                                    </td>
+                                </tr>
+                            </c:forEach>
+                        </tbody>
+                    </table>
                 </div>
             </div>
-            <div class="table-wrap" style="padding: 30px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: var(--surface);">
-                <form id="batchSuspendForm" action="batch-suspend" method="POST" enctype="multipart/form-data" style="display: flex; flex-direction: column; gap: 20px; align-items: center; max-width: 400px; width: 100%;">
-                    <div style="width: 100%; padding: 40px 20px; border: 2px dashed var(--border2); border-radius: var(--radius); text-align: center; background: var(--bg3); transition: 0.2s; cursor: pointer;" onclick="document.getElementById('suspendExcelInput').click()" onmouseover="this.style.borderColor='var(--accent)';" onmouseout="this.style.borderColor='var(--border2)';">
-                        <div style="font-size: 40px; margin-bottom: 10px;">📁</div>
-                        <div style="font-weight: 600; color: var(--text);">Nhấn để chọn file Excel (.xlsx)</div>
-                        <div style="font-size: 12px; color: var(--text3); margin-top: 5px;" id="suspendFileName">Chưa có file nào được chọn</div>
+        </div>
+        <div class="page" id="page-archive">
+            <div class="action-bar" style="margin-bottom: 20px;">
+
+                
+                <form id="batchSuspendForm" action="batch-suspend" method="POST" enctype="multipart/form-data" style="display: flex; align-items: center; gap: 10px; margin: 0; margin-right: auto;">
+                    <input type="file" id="suspendExcelInput" name="excelFile" accept=".xlsx, .xls" style="display: none;" onchange="if(this.files[0]) { document.getElementById('submitBatchBtn').style.display='block'; document.getElementById('uploadLabelBtn').innerText = 'Đã chọn: ' + this.files[0].name; }">
+                    <button type="button" class="btn btn-outline" id="uploadLabelBtn" onclick="document.getElementById('suspendExcelInput').click()" style="border-color: var(--accent); color: var(--accent);">📁 Tải lên Excel (Khóa hàng loạt)</button>
+                    <button type="submit" class="btn btn-primary" id="submitBatchBtn" style="display: none;" onclick="this.innerHTML = '⏳ Đang xử lý...'; this.style.opacity = '0.7';">Bắt đầu xử lý</button>
+                </form>
+
+                <button class="btn btn-outline" style="border-color: #e74c3c; color: #e74c3c; margin-left: 10px;" onclick="exportSuspendedToPDF()">📄 Xuất PDF (Hồ sơ)</button>
+            </div>
+            
+            <!-- SEARCH AND FILTER BAR FOR SUSPENDED LIST -->
+            <div class="action-bar" style="padding: 10px 0; background: transparent; box-shadow: none;">
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <div style="position: relative;">
+                        <input type="text" id="suspendedSearchInput" class="search-box" style="width: 280px; padding-left: 36px;" 
+                               placeholder="Tìm tên, MSSV, Email..." oninput="debounceSuspendedSearch()">
+                        <span style="position: absolute; left: 12px; top: 9px; color: var(--text3);">🔍</span>
+                        <span id="suspendedSearchLoading" style="position: absolute; right: 12px; top: 9px; display:none;">⏳</span>
                     </div>
-                    <input type="file" id="suspendExcelInput" name="excelFile" accept=".xlsx, .xls" style="display: none;" onchange="document.getElementById('suspendFileName').innerText = this.files[0] ? this.files[0].name : 'Chưa có file nào được chọn';">
+
+                    <div class="filter-container">
+                        <button class="btn btn-outline" id="btnSuspendedFilterToggle" onclick="toggleSuspendedFilterPanel()">
+                            ⚙️ Bộ lọc <span id="suspendedFilterCountBadge" class="filter-badge">0</span>
+                        </button>
+                        
+                        <div class="filter-panel" id="suspendedFilterPanel">
+                            <div class="filter-header">
+                                <span class="filter-title">Tùy chọn lọc nâng cao</span>
+                                <button class="modal-close" onclick="toggleSuspendedFilterPanel()" style="font-size:14px;">✕</button>
+                            </div>
+                            
+                            <div class="filter-body">
+                                <div class="form-group">
+                                    <label style="font-size:12px; color:var(--text2); margin-bottom:4px; display:block;">Lớp học</label>
+                                    <input type="text" id="suspendedFilterClass" class="form-control" style="font-size:13px; padding:6px 10px;" placeholder="Ví dụ: YK1">
+                                </div>
+                                <div class="form-group">
+                                    <label style="font-size:12px; color:var(--text2); margin-bottom:4px; display:block;">Khoa</label>
+                                    <input type="text" id="suspendedFilterDept" class="form-control" style="font-size:13px; padding:6px 10px;" placeholder="Ví dụ: Y khoa">
+                                </div>
+                                <div class="form-group">
+                                    <label style="font-size:12px; color:var(--text2); margin-bottom:4px; display:block;">Chuyên ngành</label>
+                                    <input type="text" id="suspendedFilterMajor" class="form-control" style="font-size:13px; padding:6px 10px;" placeholder="Ví dụ: Đa khoa">
+                                </div>
+                                <div class="form-group">
+                                    <label style="font-size:12px; color:var(--text2); margin-bottom:4px; display:block;">Niên khóa</label>
+                                    <input type="text" id="suspendedFilterCohort" class="form-control" style="font-size:13px; padding:6px 10px;" placeholder="Ví dụ: 2023-2029">
+                                </div>
+                            </div>
+                            <div class="filter-footer">
+                                <button class="btn btn-outline" style="padding:6px 12px; font-size:13px;" onclick="resetSuspendedFilters()">Làm mới</button>
+                                <button class="btn btn-primary" style="padding:6px 12px; font-size:13px;" onclick="applySuspendedFilters()">Áp dụng lọc</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="table-wrap">
+                <div class="table-scroll">
+                    <table id="suspendedTable">
+                        <thead>
+                            <tr>
+                                <th>Email</th>
+                                <th>Mã SV</th>
+                                <th>Họ Tên</th>
+                                <th>Lớp</th>
+                                <th>Ngày bảo lưu</th>
+                                <th>Trạng thái</th>
+                            </tr>
+                        </thead>
+                        <tbody id="suspendedTbody">
+                            <c:forEach var="acc" items="${dsBaoLuu}">
+                                <tr>
+                                    <td><div style="font-weight: 500;">${acc.emailAddress}</div></td>
+                                    <td style="color: var(--text2);">${acc.studentId}</td>
+                                    <td>${acc.studentName}</td>
+                                    <td>${acc.className}</td>
+                                    <td><fmt:formatDate value="${acc.activationDate}" pattern="dd/MM/yyyy"/></td>
+                                    <td><span class="badge" style="background: rgba(231, 76, 60, 0.15); color: #e74c3c;">Đã bảo lưu</span></td>
+                                </tr>
+                            </c:forEach>
+                            <c:if test="${empty dsBaoLuu}">
+                                <tr>
+                                    <td colspan="6" style="text-align: center; padding: 30px; color: var(--text3);">Không có tài khoản nào đang bảo lưu</td>
+                                </tr>
+                            </c:if>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="page" id="page-support">
+            <div class="page-header" style="margin-bottom: 20px;">
+                <div>
+                    <h2 class="page-title" style="margin-bottom: 20px;">Yêu cầu hỗ trợ</h2>
+                </div>
+            </div>
+            <div class="table-wrap">
+                <div class="table-scroll">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width: 60px;">ID</th>
+                                <th>Sinh viên</th>
+                                <th>Chủ đề</th>
+                                <th>Nội dung</th>
+                                <th>Ngày gửi</th>
+                                <th>Trạng thái</th>
+                                <th style="text-align: right;">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <c:if test="${empty dsHoTro}">
+                                <tr>
+                                    <td colspan="7" style="text-align: center; color: var(--text3); padding: 40px;">
+                                        📭 Không có yêu cầu hỗ trợ nào.
+                                    </td>
+                                </tr>
+                            </c:if>
+                            <c:forEach items="${dsHoTro}" var="r">
+                                <tr>
+                                    <td class="mono">${r.requestId}</td>
+                                    <td><strong>${r.studentName}</strong><br><span style="font-size: 12px; color: var(--text3);">${r.studentId}</span></td>
+                                    <td><strong>${r.subject}</strong></td>
+                                    <td style="max-width: 300px; white-space: normal;">${r.content}</td>
+                                    <td class="mono">${r.createdAt}</td>
+                                    <td>
+                                        <c:choose>
+                                            <c:when test="${r.status == 0}">
+                                                <span class="badge" style="background: rgba(245, 158, 11, 0.1); color: #b45309;">
+                                                    <span class="badge-dot" style="background: #f59e0b;"></span>Đang chờ
+                                                </span>
+                                            </c:when>
+                                            <c:otherwise>
+                                                <span class="badge" style="background: rgba(16, 185, 129, 0.1); color: #047857;">
+                                                    <span class="badge-dot" style="background: #10b981;"></span>Đã xử lý
+                                                </span>
+                                            </c:otherwise>
+                                        </c:choose>
+                                    </td>
+                                    <td style="text-align: right;">
+                                        <c:if test="${r.status == 0}">
+                                            <a href="admin-support?action=resolve&id=${r.requestId}" class="btn btn-success btn-sm">✅ Xác nhận xử lý</a>
+                                        </c:if>
+                                    </td>
+                                </tr>
+                            </c:forEach>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="page" id="page-notify">
+            <div class="page-header" style="margin-bottom: 20px;">
+                
+            </div>
+            <div style="background: var(--surface); padding: 24px; border-radius: 12px; border: 1px solid var(--border); max-width: 900px; width: 100%;">
+                <form action="${pageContext.request.contextPath}/send-notification" method="post">
                     
-                    <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; padding: 12px; font-size: 14px;" onclick="if(!document.getElementById('suspendExcelInput').value) { alert('Vui lòng chọn file Excel trước!'); return false; } this.innerHTML = '⏳ Đang xử lý...'; this.style.opacity = '0.7';">
-                        Bắt đầu xử lý hàng loạt
-                    </button>
+                    <div style="background: var(--bg); padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                        <h4 style="margin-top: 0; margin-bottom: 12px; font-weight: 600;">Lọc đối tượng nhận:</h4>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px;">
+                            <div class="form-group">
+                                <label style="font-size: 13px; font-weight: 500;">Trạng thái tài khoản</label>
+                                <select name="status" class="input" style="width: 100%; padding: 8px;">
+                                    <option value="">-- Tất cả --</option>
+                                    <option value="1" selected>Đang hoạt động</option>
+                                    <option value="0">Chờ kích hoạt</option>
+                                    <option value="2">Đang bảo lưu</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label style="font-size: 13px; font-weight: 500;">Khoa</label>
+                                <input type="text" name="department" class="input" style="width: 100%; padding: 8px;" placeholder="Ví dụ: Khoa Y">
+                            </div>
+                            <div class="form-group">
+                                <label style="font-size: 13px; font-weight: 500;">Ngành học</label>
+                                <input type="text" name="major" class="input" style="width: 100%; padding: 8px;" placeholder="Ví dụ: Y khoa">
+                            </div>
+                            <div class="form-group">
+                                <label style="font-size: 13px; font-weight: 500;">Lớp</label>
+                                <input type="text" name="className" class="input" style="width: 100%; padding: 8px;" placeholder="Ví dụ: Y117A">
+                            </div>
+                            <div class="form-group">
+                                <label style="font-size: 13px; font-weight: 500;">Khóa</label>
+                                <input type="text" name="cohort" class="input" style="width: 100%; padding: 8px;" placeholder="Ví dụ: 117">
+                            </div>
+                        </div>
+                        <p style="margin-top: 10px; margin-bottom: 0; font-size: 12px; color: var(--text3);">* Bỏ trống nếu muốn gửi cho tất cả.</p>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label for="notifySubject" style="font-weight: 600; margin-bottom: 8px; display: block;">Tiêu đề thông báo <span style="color:red">*</span></label>
+                        <input type="text" id="notifySubject" name="subject" class="input" style="width: 100%; padding: 12px;" placeholder="Nhập tiêu đề email..." required>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label for="notifyMessage" style="font-weight: 600; margin-bottom: 8px; display: block;">Nội dung thông báo <span style="color:red">*</span></label>
+                        <textarea id="notifyMessage" name="message" class="input" style="width: 100%; padding: 12px; min-height: 200px; resize: vertical;" placeholder="Kính gửi các bạn sinh viên,..." required></textarea>
+                    </div>
+                    <div style="display: flex; justify-content: flex-end; gap: 15px;">
+                        <button type="reset" class="btn btn-outline" style="padding: 10px 20px;">Xóa trắng</button>
+                        <button type="submit" class="btn btn-primary" style="padding: 10px 20px; font-weight: 600;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style="margin-right:6px;"><path d="M15.964.686a.5.5 0 0 0-.65-.65L.767 5.855H.766l-.452.18a.5.5 0 0 0-.082.887l.41.26.001.002 4.995 3.178 3.178 4.995.002.002.26.41a.5.5 0 0 0 .886-.083l6-15Zm-1.833 1.89L6.637 10.07l-.215-.338a.5.5 0 0 0-.154-.154l-.338-.215 7.494-7.494 1.178-.471-.47 1.178Z"/></svg>
+                            Gửi Thông Báo
+                        </button>
+                    </div>
                 </form>
             </div>
         </div>
-        <div class="page" id="page-import"><div style="margin:auto; color:var(--text3);"><h2>📥 Giao diện Quản lý file Import</h2></div></div>
-        <div class="page" id="page-notify"><div style="margin:auto; color:var(--text3);"><h2>📢 Giao diện Gửi thông báo</h2></div></div>
+
         <div class="page" id="page-log">
             <div class="action-bar" style="margin-bottom: 20px;">
-                <div style="flex: 1;">
-                    <h2 class="page-title">📝 Nhật ký hoạt động toàn hệ thống</h2>
-                    <p style="color: var(--text2); margin-top: 8px; font-size: 13px;">Theo dõi tất cả các thay đổi và tác vụ vừa được thực thi.</p>
-                </div>
+
                 <button class="btn btn-outline" onclick="refreshActivity()">🔄 Làm mới</button>
             </div>
             <div class="table-wrap">
@@ -1438,27 +1790,56 @@ tr:hover td {
         </div>
     </div>
 
-    <!-- ================= MODAL RESET TOÀN BỘ DỮ LIỆU ================= -->
-    <div class="modal-overlay" id="resetModal">
-        <div class="modal">
+
+    <!-- ================= MODAL XUẤT EXCEL ================= -->
+    <div class="modal-overlay" id="exportModal">
+        <div class="modal" style="max-width: 500px;">
             <div class="modal-header">
-                <div class="modal-title">⚠️ Reset toàn bộ dữ liệu sinh viên</div>
-                <button class="modal-close" onclick="closeResetModal()">✕</button>
+                <div class="modal-title">📥 Tùy chọn Xuất Excel</div>
+                <button class="modal-close" onclick="closeExportModal()">✕</button>
             </div>
             <div class="modal-body">
-                <p>Bạn sắp xóa toàn bộ sinh viên và email hiện tại. Hành động này không thể hoàn tác.</p>
-                <form id="resetForm" action="reset-data" method="POST" onsubmit="return confirmReset(event)">
+                <form action="export-excel" method="GET" id="exportExcelForm">
                     <div class="form-group">
-                        <label>Xác nhận mật khẩu admin</label>
-                        <input type="password" class="form-control" name="adminPassword" placeholder="Nhập mật khẩu admin" required>
+                        <label>Chọn trạng thái tài khoản cần xuất:</label>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">
+                            <label style="display: flex; align-items: center; gap: 8px; font-weight: normal; cursor: pointer;">
+                                <input type="checkbox" name="status" value="1" checked> Hoạt động
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 8px; font-weight: normal; cursor: pointer;">
+                                <input type="checkbox" name="status" value="0"> Chờ kích hoạt
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 8px; font-weight: normal; cursor: pointer;">
+                                <input type="checkbox" name="status" value="2"> Đang bảo lưu
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 8px; font-weight: normal; cursor: pointer;">
+                                <input type="checkbox" name="status" value="3"> Chờ xóa
+                            </label>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label>Ghi chú</label>
-                        <textarea class="form-control" rows="3" readonly>Hệ thống sẽ xóa toàn bộ dữ liệu trong bảng students và email_accounts trước khi import lại.</textarea>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <div class="form-group">
+                            <label>Khoa / Đơn vị</label>
+                            <input type="text" name="department" class="form-control" placeholder="Ví dụ: Khoa Y...">
+                        </div>
+                        <div class="form-group">
+                            <label>Ngành học</label>
+                            <input type="text" name="major" class="form-control" placeholder="Ví dụ: Y đa khoa...">
+                        </div>
                     </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-outline" onclick="closeResetModal()">Hủy bỏ</button>
-                        <button type="submit" class="btn btn-danger">Xác nhận reset</button>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <div class="form-group">
+                            <label>Lớp</label>
+                            <input type="text" name="studentClass" class="form-control" placeholder="Tên lớp...">
+                        </div>
+                        <div class="form-group">
+                            <label>Khóa</label>
+                            <input type="text" name="cohort" class="form-control" placeholder="2020...">
+                        </div>
+                    </div>
+                    <div class="modal-footer" style="margin-top: 20px;">
+                        <button type="button" class="btn btn-outline" onclick="closeExportModal()">Hủy</button>
+                        <button type="submit" class="btn btn-primary" onclick="closeExportModal()">Xác nhận Xuất</button>
                     </div>
                 </form>
             </div>
@@ -1467,6 +1848,140 @@ tr:hover td {
 
     <!-- TOAST CONTAINER -->
     <div class="toast-container" id="toastContainer"></div>
+
+    <!-- jsPDF and AutoTable libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    
+    <script>
+        function removeVietnameseTones(str) {
+            str = str.replace(/à|á|ạ|ả|ã|â|ầ|ấ|ậ|ẩ|ẫ|ă|ằ|ắ|ặ|ẳ|ẵ/g,"a"); 
+            str = str.replace(/è|é|ẹ|ẻ|ẽ|ê|ề|ế|ệ|ể|ễ/g,"e"); 
+            str = str.replace(/ì|í|ị|ỉ|ĩ/g,"i"); 
+            str = str.replace(/ò|ó|ọ|ỏ|õ|ô|ồ|ố|ộ|ổ|ỗ|ơ|ờ|ớ|ợ|ở|ỡ/g,"o"); 
+            str = str.replace(/ù|ú|ụ|ủ|ũ|ư|ừ|ứ|ự|ử|ữ/g,"u"); 
+            str = str.replace(/ỳ|ý|ỵ|ỷ|ỹ/g,"y"); 
+            str = str.replace(/đ/g,"d");
+            str = str.replace(/À|Á|Ạ|Ả|Ã|Â|Ầ|Ấ|Ậ|Ẩ|Ẫ|Ă|Ằ|Ắ|Ặ|Ẳ|Ẵ/g, "A");
+            str = str.replace(/È|É|Ẹ|Ẻ|Ẽ|Ê|Ề|Ế|Ệ|Ể|Ễ/g, "E");
+            str = str.replace(/Ì|Í|Ị|Ỉ|Ĩ/g, "I");
+            str = str.replace(/Ò|Ó|Ọ|Ỏ|Õ|Ô|Ồ|Ố|Ộ|Ổ|Ỗ|Ơ|Ờ|Ớ|Ợ|Ở|Ỡ/g, "O");
+            str = str.replace(/Ù|Ú|Ụ|Ủ|Ũ|Ư|Ừ|Ứ|Ự|Ử|Ữ/g, "U");
+            str = str.replace(/Ỳ|Ý|Ỵ|Ỷ|Ỹ/g, "Y");
+            str = str.replace(/Đ/g, "D");
+            return str;
+        }
+
+        function exportRevokedToPDF() {
+            try {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                
+                // Add title
+                doc.setFontSize(18);
+                doc.text("DANH SACH SINH VIEN CHO THU HOI TAI KHOAN", 105, 15, null, null, "center");
+                
+                const today = new Date();
+                const dateStr = today.getDate() + "/" + (today.getMonth()+1) + "/" + today.getFullYear();
+                doc.setFontSize(11);
+                doc.text("Ngay ket xuat: " + dateStr, 105, 22, null, null, "center");
+
+                // Prepare table data
+                const table = document.getElementById("revokeTable");
+                if(!table || table.rows.length <= 1 || (table.rows.length === 2 && table.rows[1].cells.length === 1)) {
+                    alert("Không có dữ liệu để xuất PDF!");
+                    return;
+                }
+
+                const data = [];
+                for (let i = 1; i < table.rows.length; i++) {
+                    const row = table.rows[i];
+                    if (row.cells.length > 1) {
+                        const email = removeVietnameseTones(row.cells[0].innerText.trim());
+                        const maSV = removeVietnameseTones(row.cells[1].innerText.trim());
+                        const hoTen = removeVietnameseTones(row.cells[2].innerText.trim());
+                        const lop = removeVietnameseTones(row.cells[3].innerText.trim());
+                        const ngayXoa = removeVietnameseTones(row.cells[5].innerText.trim());
+                        data.push([i, hoTen, maSV, email, lop, ngayXoa]);
+                    }
+                }
+
+                // Generate table
+                doc.autoTable({
+                    startY: 30,
+                    head: [['STT', 'Ho ten', 'Ma SV', 'Email', 'Lop', 'Ngay du kien xoa']],
+                    body: data,
+                    theme: 'grid',
+                    headStyles: { fillColor: [231, 76, 60] },
+                    styles: { fontSize: 10, cellPadding: 3 }
+                });
+
+                // Save PDF
+                const fileName = "Danh_Sach_Cho_Thu_Hoi_" + dateStr.replace(/\//g, "_") + ".pdf";
+                doc.save(fileName);
+                
+                showToast("Đã xuất PDF thành công!", "success");
+            } catch (err) {
+                console.error(err);
+                alert("Lỗi xuất PDF: " + err.message);
+            }
+        }
+
+        function exportSuspendedToPDF() {
+            try {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                
+                // Add title
+                doc.setFontSize(18);
+                doc.text("DANH SACH SINH VIEN BAO LUU TAI KHOAN", 105, 15, null, null, "center");
+                
+                const today = new Date();
+                const dateStr = today.getDate() + "/" + (today.getMonth()+1) + "/" + today.getFullYear();
+                doc.setFontSize(11);
+                doc.text("Ngay ket xuat: " + dateStr, 105, 22, null, null, "center");
+
+                // Prepare table data
+                const table = document.getElementById("suspendedTable");
+                if(!table || table.rows.length <= 1 || (table.rows.length === 2 && table.rows[1].cells.length === 1)) {
+                    alert("Không có dữ liệu để xuất PDF!");
+                    return;
+                }
+
+                const data = [];
+                for (let i = 1; i < table.rows.length; i++) {
+                    const row = table.rows[i];
+                    if (row.cells.length > 1) {
+                        const email = removeVietnameseTones(row.cells[0].innerText.trim());
+                        const maSV = removeVietnameseTones(row.cells[1].innerText.trim());
+                        const hoTen = removeVietnameseTones(row.cells[2].innerText.trim());
+                        const lop = removeVietnameseTones(row.cells[3].innerText.trim());
+                        const ngay = removeVietnameseTones(row.cells[4].innerText.trim());
+                        data.push([i, hoTen, maSV, email, lop, ngay]);
+                    }
+                }
+
+                // Generate table
+                doc.autoTable({
+                    startY: 30,
+                    head: [['STT', 'Ho ten', 'Ma SV', 'Email', 'Lop', 'Ngay bao luu']],
+                    body: data,
+                    theme: 'grid',
+                    headStyles: { fillColor: [52, 152, 219] },
+                    styles: { fontSize: 10, cellPadding: 3 }
+                });
+
+                // Save PDF
+                const fileName = "Danh_Sach_Bao_Luu_" + dateStr.replace(/\//g, "_") + ".pdf";
+                doc.save(fileName);
+                
+                showToast("Đã xuất PDF thành công!", "success");
+            } catch (err) {
+                console.error(err);
+                alert("Lỗi xuất PDF: " + err.message);
+            }
+        }
+    </script>
 
     <script>
         // Chỉ giữ lại biến này để lấy đường dẫn gốc từ Tomcat (ví dụ: /email-management)

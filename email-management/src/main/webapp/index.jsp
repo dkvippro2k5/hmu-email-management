@@ -19,21 +19,8 @@
             --bg: #ffffff;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Be Vietnam Pro', sans-serif; line-height: 1.6; color: var(--text); background-color: #f4f7f6; }
+        body { font-family: 'Be Vietnam Pro', sans-serif; line-height: 1.6; color: var(--text); background-color: #f4f7f6; overflow-y: scroll; }
         
-        /* Header */
-        header { background: #fff; padding: 20px 5%; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .logo-section h1 { font-size: 24px; color: var(--primary); font-weight: 800; }
-        .login-btn { padding: 10px 20px; background: var(--accent); color: #fff; text-decoration: none; border-radius: 8px; font-weight: 600; transition: 0.3s; }
-        .login-btn:hover { background: #2563eb; }
-
-        /* Navigation Taskbar */
-        nav { background: var(--primary); color: #fff; padding: 0 5%; }
-        nav ul { list-style: none; display: flex; }
-        nav ul li { position: relative; }
-        nav ul li a { display: block; padding: 15px 20px; color: #fff; text-decoration: none; font-weight: 500; transition: 0.3s; }
-        nav ul li a:hover { background: rgba(255,255,255,0.1); }
-
         /* Main Content */
         .container { max-width: 1200px; margin: 30px auto; padding: 0 20px; }
         .intro-section { background: #fff; padding: 40px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 30px; }
@@ -56,40 +43,7 @@
     </style>
 </head>
 <body>
-
-    <header>
-        <div class="logo-section">
-            <h1>Trường Đại học Y Hà Nội</h1>
-        </div>
-        <div>
-            <% 
-                EmailAccount user = (EmailAccount) session.getAttribute("user");
-                ITAdmin admin = (ITAdmin) session.getAttribute("currentAdmin");
-                if (user != null || admin != null) {
-                    String name = (user != null) ? user.getStudentId() : admin.getFullName();
-                    String dashboardLink = (admin != null) ? "dashboard" : "student-portal.jsp";
-            %>
-                <span class="user-info">Xin chào, <strong><%= name %></strong></span>
-                <a href="<%= dashboardLink %>" class="login-btn">Vào hệ thống</a>
-                <a href="logout" class="login-btn" style="background-color: #ef4444; margin-left: 10px;">Đăng xuất</a>
-            <% } else { %>
-                <a href="login.jsp" class="login-btn">Đăng nhập</a>
-            <% } %>
-        </div>
-    </header>
-
-    <nav>
-        <ul>
-            <li><a href="index.jsp">Trang chủ</a></li>
-            <li><a href="admissions.jsp">Tuyển sinh - Đào tạo</a></li>
-            <li><a href="it-services">Hệ thống và dịch vụ CNTT</a></li>
-            <li><a href="support">Liên hệ hỗ trợ</a></li>
-            <% if (user != null) { %>
-                <li><a href="personal-info">Thông tin cá nhân</a></li>
-                <li><a href="student-portal.jsp">Tài khoản Email</a></li>
-            <% } %>
-        </ul>
-    </nav>
+    <jsp:include page="components/header.jsp" />
 
     <div class="container">
         <section class="intro-section">

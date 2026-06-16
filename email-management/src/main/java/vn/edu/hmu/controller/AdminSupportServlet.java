@@ -28,7 +28,7 @@ public class AdminSupportServlet extends HttpServlet {
         if ("resolve".equals(action)) {
             int id = Integer.parseInt(request.getParameter("id"));
             supportDAO.updateStatus(id, 1);
-            response.sendRedirect("admin-support");
+            response.sendRedirect("dashboard");
             return;
         }
 

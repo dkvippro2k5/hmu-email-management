@@ -7,8 +7,9 @@ const moduleTitles = {
     revoke: 'Thu hồi tài khoản <span>/ Xử lý thu hồi</span>',
     archive: 'Bảo lưu tài khoản <span>/ Quản lý bảo lưu</span>',
     import: 'Import danh sách <span>/ Quản lý tệp dữ liệu</span>',
-    notify: 'Gửi thông báo <span>/ Cấu hình mail template</span>',
-    log: 'Nhật ký hoạt động <span>/ Log hệ thống</span>'
+    log: 'Nhật ký hoạt động <span>/ Log hệ thống</span>',
+    support: 'Support <span>/ Yêu cầu hỗ trợ</span>',
+    notify: 'Gửi thông báo nâng cao <span>/ Nhắn tin hàng loạt</span>'
 };
 
 function showModule(modName, element) {
@@ -58,8 +59,7 @@ window.onload = function() {
         resetButton.addEventListener('click', openResetModal);
     }
 
-    // Set list page as default active module
-    showModule('list', document.querySelector('.nav-item[onclick*="list"]'));
+    // Logic hash được chuyển sang inline script ở file dashboard.jsp để tránh giật màn hình
 };
 
 /* =========================================================
@@ -137,8 +137,21 @@ function confirmReset(event) {
 ========================================================= */
 let searchTimeout;
 
+let suspendedSearchTimeout;
+let revokeSearchTimeout;
+
 function toggleFilterPanel() {
     const panel = document.getElementById('filterPanel');
+    panel.classList.toggle('open');
+}
+
+function toggleSuspendedFilterPanel() {
+    const panel = document.getElementById('suspendedFilterPanel');
+    panel.classList.toggle('open');
+}
+
+function toggleRevokeFilterPanel() {
+    const panel = document.getElementById('revokeFilterPanel');
     panel.classList.toggle('open');
 }
 
@@ -149,6 +162,22 @@ document.addEventListener('click', function(e) {
     if (panel && panel.classList.contains('open')) {
         if (!panel.contains(e.target) && !toggleBtn.contains(e.target)) {
             panel.classList.remove('open');
+        }
+    }
+    
+    const panelS = document.getElementById('suspendedFilterPanel');
+    const toggleBtnS = document.getElementById('btnSuspendedFilterToggle');
+    if (panelS && panelS.classList.contains('open')) {
+        if (!panelS.contains(e.target) && !toggleBtnS.contains(e.target)) {
+            panelS.classList.remove('open');
+        }
+    }
+
+    const panelR = document.getElementById('revokeFilterPanel');
+    const toggleBtnR = document.getElementById('btnRevokeFilterToggle');
+    if (panelR && panelR.classList.contains('open')) {
+        if (!panelR.contains(e.target) && !toggleBtnR.contains(e.target)) {
+            panelR.classList.remove('open');
         }
     }
 });
@@ -163,10 +192,42 @@ function debounceRealtimeSearch() {
     }, 400); 
 }
 
+function debounceSuspendedSearch() {
+    const loadingIcon = document.getElementById('suspendedSearchLoading');
+    if (loadingIcon) loadingIcon.style.display = 'inline'; 
+
+    clearTimeout(suspendedSearchTimeout);
+    suspendedSearchTimeout = setTimeout(() => {
+        triggerSuspendedApiSearch();
+    }, 400); 
+}
+
+function debounceRevokeSearch() {
+    const loadingIcon = document.getElementById('revokeSearchLoading');
+    if (loadingIcon) loadingIcon.style.display = 'inline'; 
+
+    clearTimeout(revokeSearchTimeout);
+    revokeSearchTimeout = setTimeout(() => {
+        triggerRevokeApiSearch();
+    }, 400); 
+}
+
 function applyFilters() {
     updateFilterBadge();
     triggerApiSearch();
     toggleFilterPanel(); 
+}
+
+function applySuspendedFilters() {
+    updateSuspendedFilterBadge();
+    triggerSuspendedApiSearch();
+    toggleSuspendedFilterPanel(); 
+}
+
+function applyRevokeFilters() {
+    updateRevokeFilterBadge();
+    triggerRevokeApiSearch();
+    toggleRevokeFilterPanel(); 
 }
 
 function clearFilters() {
@@ -179,6 +240,24 @@ function clearFilters() {
     triggerApiSearch();
 }
 
+function resetSuspendedFilters() {
+    document.getElementById('suspendedFilterClass').value = "";
+    document.getElementById('suspendedFilterDept').value = "";
+    document.getElementById('suspendedFilterMajor').value = "";
+    document.getElementById('suspendedFilterCohort').value = "";
+    updateSuspendedFilterBadge();
+    triggerSuspendedApiSearch();
+}
+
+function resetRevokeFilters() {
+    document.getElementById('revokeFilterClass').value = "";
+    document.getElementById('revokeFilterDept').value = "";
+    document.getElementById('revokeFilterMajor').value = "";
+    document.getElementById('revokeFilterCohort').value = "";
+    updateRevokeFilterBadge();
+    triggerRevokeApiSearch();
+}
+
 function updateFilterBadge() {
     let count = 0;
     if (document.getElementById('statusFilter').value !== "-1") count++;
@@ -188,6 +267,42 @@ function updateFilterBadge() {
     if (document.getElementById('cohortFilter').value.trim() !== "") count++;
 
     const badge = document.getElementById('filterCountBadge');
+    if (badge) {
+        if (count > 0) {
+            badge.innerText = count;
+            badge.style.display = 'inline-block';
+        } else {
+            badge.style.display = 'none';
+        }
+    }
+}
+
+function updateSuspendedFilterBadge() {
+    let count = 0;
+    if (document.getElementById('suspendedFilterClass').value.trim() !== "") count++;
+    if (document.getElementById('suspendedFilterDept').value.trim() !== "") count++;
+    if (document.getElementById('suspendedFilterMajor').value.trim() !== "") count++;
+    if (document.getElementById('suspendedFilterCohort').value.trim() !== "") count++;
+
+    const badge = document.getElementById('suspendedFilterCountBadge');
+    if (badge) {
+        if (count > 0) {
+            badge.innerText = count;
+            badge.style.display = 'inline-block';
+        } else {
+            badge.style.display = 'none';
+        }
+    }
+}
+
+function updateRevokeFilterBadge() {
+    let count = 0;
+    if (document.getElementById('revokeFilterClass').value.trim() !== "") count++;
+    if (document.getElementById('revokeFilterDept').value.trim() !== "") count++;
+    if (document.getElementById('revokeFilterMajor').value.trim() !== "") count++;
+    if (document.getElementById('revokeFilterCohort').value.trim() !== "") count++;
+
+    const badge = document.getElementById('revokeFilterCountBadge');
     if (badge) {
         if (count > 0) {
             badge.innerText = count;
@@ -303,6 +418,145 @@ function triggerApiSearch(queryStr) {
     });
 }
 
+function triggerSuspendedApiSearch(queryStr) {
+    let keyword = queryStr !== undefined ? queryStr : document.getElementById('suspendedSearchInput').value;
+    let className = document.getElementById('suspendedFilterClass').value;
+    let department = document.getElementById('suspendedFilterDept').value;
+    let major = document.getElementById('suspendedFilterMajor').value;
+    let cohort = document.getElementById('suspendedFilterCohort').value;
+    
+    const loadingIcon = document.getElementById('suspendedSearchLoading');
+    if (loadingIcon) loadingIcon.style.display = 'inline';
+
+    const params = new URLSearchParams({
+        keyword: keyword.trim(),
+        status: 2, // Hardcode status = 2 for suspended
+        className: className.trim(),
+        department: department.trim(),
+        major: major.trim(),
+        cohort: cohort.trim()
+    });
+
+    const apiUrl = `${contextPath}/search-accounts?${params.toString()}`;
+
+    fetch(apiUrl)
+    .then(response => {
+        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+        return response.json();
+    })
+    .then(data => {
+        if (loadingIcon) loadingIcon.style.display = 'none';
+        let tableBody = document.getElementById('suspendedTbody');
+        let htmlContent = '';
+
+        if (!data || data.length === 0) {
+            htmlContent = `<tr><td colspan="6" style="text-align: center; color: var(--text3); padding: 30px;">🔍 Không tìm thấy kết quả nào phù hợp.</td></tr>`;
+        } else {
+            data.forEach((student, index) => {
+                let activationDateStr = '';
+                if (student.activationDate) {
+                    const dateObj = new Date(student.activationDate);
+                    activationDateStr = String(dateObj.getDate()).padStart(2, '0') + '/' + String(dateObj.getMonth() + 1).padStart(2, '0') + '/' + dateObj.getFullYear();
+                }
+                htmlContent += `
+                    <tr>
+                        <td><div style="font-weight: 500;">${escapeHtml(student.emailAddress)}</div></td>
+                        <td style="color: var(--text2);">${escapeHtml(student.studentId)}</td>
+                        <td>${escapeHtml(student.studentName)}</td>
+                        <td>${escapeHtml(student.className)}</td>
+                        <td>${activationDateStr}</td>
+                        <td><span class="badge" style="background: rgba(231, 76, 60, 0.15); color: #e74c3c;">Đã bảo lưu</span></td>
+                    </tr>
+                `;
+            });
+        }
+        
+        tableBody.innerHTML = htmlContent;
+    })
+    .catch(error => {
+        if (loadingIcon) loadingIcon.style.display = 'none';
+        showToast("Lỗi khi tải dữ liệu. Vui lòng kiểm tra kết nối!", "error");
+    });
+}
+
+function triggerRevokeApiSearch(queryStr) {
+    let keyword = queryStr !== undefined ? queryStr : document.getElementById('revokeSearchInput').value;
+    let className = document.getElementById('revokeFilterClass').value;
+    let department = document.getElementById('revokeFilterDept').value;
+    let major = document.getElementById('revokeFilterMajor').value;
+    let cohort = document.getElementById('revokeFilterCohort').value;
+    
+    const loadingIcon = document.getElementById('revokeSearchLoading');
+    if (loadingIcon) loadingIcon.style.display = 'inline';
+
+    const params = new URLSearchParams({
+        keyword: keyword.trim(),
+        status: 3, // Hardcode status = 3 for waiting revoke
+        className: className.trim(),
+        department: department.trim(),
+        major: major.trim(),
+        cohort: cohort.trim()
+    });
+
+    const apiUrl = `${contextPath}/search-accounts?${params.toString()}`;
+
+    fetch(apiUrl)
+    .then(response => {
+        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+        return response.json();
+    })
+    .then(data => {
+        if (loadingIcon) loadingIcon.style.display = 'none';
+        let tableBody = document.getElementById('revokeTbody');
+        let htmlContent = '';
+
+        if (!data || data.length === 0) {
+            htmlContent = `<tr><td colspan="8" style="text-align: center; color: var(--text3); padding: 30px;">🔍 Không tìm thấy kết quả nào phù hợp.</td></tr>`;
+        } else {
+            data.forEach((student, index) => {
+                let activationDateStr = '';
+                if (student.activationDate) {
+                    const dateObj = new Date(student.activationDate);
+                    activationDateStr = String(dateObj.getDate()).padStart(2, '0') + '/' + String(dateObj.getMonth() + 1).padStart(2, '0') + '/' + dateObj.getFullYear();
+                }
+                
+                let deleteDateStr = '<span style="color: var(--text3);">Chưa lên lịch</span>';
+                if (student.scheduledDeleteDate) {
+                    const dDate = new Date(student.scheduledDeleteDate);
+                    const formattedDDate = String(dDate.getDate()).padStart(2, '0') + '/' + String(dDate.getMonth() + 1).padStart(2, '0') + '/' + dDate.getFullYear();
+                    deleteDateStr = `<span style="color: #d97706; font-weight: 500; display: inline-flex; align-items: center; gap: 4px;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 16 16"><path d="M8 3.5a.5.5 0 0 0-1 0V9a.5.5 0 0 0 .252.434l3.5 2a.5.5 0 0 0 .496-.868L8 8.71V3.5z"/><path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm7-8A7 7 0 1 1 1 8a7 7 0 0 1 14 0z"/></svg>
+                        ${formattedDDate}
+                    </span>`;
+                }
+
+                htmlContent += `
+                    <tr>
+                        <td><div style="font-weight: 500;">${escapeHtml(student.emailAddress)}</div></td>
+                        <td style="color: var(--text2);">${escapeHtml(student.studentId)}</td>
+                        <td>${escapeHtml(student.studentName)}</td>
+                        <td>${escapeHtml(student.className)}</td>
+                        <td>${activationDateStr}</td>
+                        <td>${deleteDateStr}</td>
+                        <td><span class="badge" style="background: rgba(245, 158, 11, 0.1); color: #d97706; border-color: rgba(245, 158, 11, 0.2);">Chờ xóa</span></td>
+                        <td style="text-align: right;">
+                            <button class="action-btn" title="Hủy xóa (Khôi phục)" onclick="restoreAccount('${student.emailAddress}')" style="color: #059669; background: rgba(16, 185, 129, 0.1);">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16"><path d="M9.302 1.256a1.5 1.5 0 0 0-2.604 0l-1.704 2.98a.5.5 0 0 0 .869.497l1.703-2.981a.5.5 0 0 1 .868 0l2.54 4.444-1.256-.337a.5.5 0 1 0-.26.966l2.415.647a.5.5 0 0 0 .613-.353l.647-2.415a.5.5 0 1 0-.966-.259l-.333 1.242-2.532-4.431zM2.973 7.773l-1.255.337a.5.5 0 1 1-.26-.966l2.416-.647a.5.5 0 0 1 .612.353l.647 2.415a.5.5 0 0 1-.966.259l-.333-1.242-2.545 4.454a.5.5 0 0 0 .434.748H5a.5.5 0 0 1 0 1H1.723A1.5 1.5 0 0 1 .421 12.24l2.552-4.467zm10.89 1.463a.5.5 0 1 0-.868.496l1.716 3.004a.5.5 0 0 1-.434.748h-2.56l.34-.85a.5.5 0 1 0-.928-.372l-.636 1.58a.5.5 0 0 0 .373.636l1.58.636a.5.5 0 0 0 .372-.928l-.855-.34h2.56a1.5 1.5 0 0 0 1.302-2.244l-1.716-3.004z"/></svg>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+        
+        tableBody.innerHTML = htmlContent;
+    })
+    .catch(error => {
+        if (loadingIcon) loadingIcon.style.display = 'none';
+        showToast("Lỗi khi tải dữ liệu. Vui lòng kiểm tra kết nối!", "error");
+    });
+}
+
 /* =========================================================
    6. CÁC THAO TÁC API: KHÓA / XÓA / SỬA TÀI KHOẢN
 ========================================================= */
@@ -349,9 +603,11 @@ function restoreAccount(studentId) {
         })
         .then(response => response.json())
         .then(data => {
-            if (data.success) {
+            if (data.success || data.status === "success") {
                 showToast(data.message, 'success');
                 triggerApiSearch();
+                triggerSuspendedApiSearch();
+                triggerRevokeApiSearch();
             } else {
                 showToast('Lỗi: ' + data.message, 'error');
             }
@@ -372,9 +628,11 @@ function deleteAccount(studentId) {
         })
         .then(response => response.json())
         .then(data => {
-            if (data.success) {
+            if (data.success || data.status === "success") {
                 showToast(data.message, 'success');
                 triggerApiSearch();
+                triggerSuspendedApiSearch();
+                triggerRevokeApiSearch();
             } else {
                 showToast('Lỗi: ' + data.message, 'error');
             }
@@ -565,3 +823,5 @@ function testAutoActivation() {
         });
     }
 }
+function openExportModal() { document.getElementById('exportModal').classList.add('open'); }
+function closeExportModal() { document.getElementById('exportModal').classList.remove('open'); }

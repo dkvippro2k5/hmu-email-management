@@ -17,6 +17,7 @@ public class EmailAccount {
     private String cohort;
     private String personalEmail;
     private String decisionNumber; // Thêm trường này để lưu số quyết định khi khóa tài khoản
+    private Date scheduledDeleteDate;
 
     public EmailAccount() {}
 
@@ -72,4 +73,7 @@ public class EmailAccount {
 
     public String getDecisionNumber() { return decisionNumber; }
     public void setDecisionNumber(String decisionNumber) { this.decisionNumber = decisionNumber; }
+
+    public Date getScheduledDeleteDate() { return scheduledDeleteDate; }
+    public void setScheduledDeleteDate(Date scheduledDeleteDate) { this.scheduledDeleteDate = scheduledDeleteDate; }
 }

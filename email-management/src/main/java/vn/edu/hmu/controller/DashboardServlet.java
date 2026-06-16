@@ -35,8 +35,14 @@ public class DashboardServlet extends HttpServlet {
         AdminDAO adminDAO = new AdminDAO();
         SupportRequestDAO supportDAO = new SupportRequestDAO();
 
-        // Lay danh sach tai khoan cho bang danh sach
+        // Lấy danh sách tài khoản cho bảng danh sách
         List<EmailAccount> listAcc = studentDAO.getAllAccounts();
+        
+        // Lấy danh sách tài khoản đang bảo lưu
+        List<EmailAccount> suspendedAccList = studentDAO.getSuspendedAccountsList();
+
+        // Lấy danh sách tài khoản chờ thu hồi
+        List<EmailAccount> revokedAccList = studentDAO.getPendingRevokeAccountsList();
 
         // Lay thong ke
         int totalAccounts = studentDAO.getTotalAccounts();
@@ -50,8 +56,14 @@ public class DashboardServlet extends HttpServlet {
         // Lấy danh sách log nhiều hơn (ví dụ 100) cho tab Nhật ký hoạt động
         List<ActionLog> allLogs = adminDAO.getRecentLogs(100);
 
+        // Lấy danh sách yêu cầu hỗ trợ
+        List<vn.edu.hmu.model.SupportRequest> supportRequests = supportDAO.getAllRequests();
+
         // 2. Goi du lieu vao request attributes
         request.setAttribute("dsTaiKhoan", listAcc);
+        request.setAttribute("dsBaoLuu", suspendedAccList);
+        request.setAttribute("dsThuHoi", revokedAccList);
+        request.setAttribute("dsHoTro", supportRequests);
         request.setAttribute("totalAccounts", totalAccounts);
         request.setAttribute("activeAccounts", activeAccounts);
         request.setAttribute("suspendedAccounts", suspendedAccounts);
