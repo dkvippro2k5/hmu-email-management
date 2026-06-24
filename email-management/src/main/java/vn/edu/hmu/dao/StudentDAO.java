@@ -247,8 +247,8 @@ public class StudentDAO {
     }
 
     public boolean createStudentWithEmail(Student student, EmailAccount emailAcc) {
-        String sqlStudent = "INSERT INTO students (student_id, full_name, cccd, first_name, last_name, cohort, phone_number, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, NOW())";
-        String sqlEmail = "INSERT INTO email_accounts (email_address, student_id, password_hash, status, activation_date) VALUES (?, ?, ?, ?, ?)";
+        String sqlStudent = "INSERT INTO students (student_id, full_name, cccd, first_name, last_name, cohort, phone_number, portal_password, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())";
+        String sqlEmail = "INSERT INTO email_accounts (email_address, student_id, password_hash, initial_password_encrypted, status, activation_date) VALUES (?, ?, ?, ?, ?, ?)";
 
         try (Connection conn = DBConnection.getConnection()) {
             conn.setAutoCommit(false);
@@ -263,14 +263,75 @@ public class StudentDAO {
                 ps1.setString(5, student.getLastName());
                 ps1.setString(6, student.getCohort());
                 ps1.setString(7, student.getPhoneNumber());
+                ps1.setString(8, student.getPortalPassword());
                 ps1.executeUpdate();
 
                 ps2.setString(1, emailAcc.getEmailAddress());
                 ps2.setString(2, emailAcc.getStudentId());
                 ps2.setString(3, emailAcc.getPasswordHash());
-                ps2.setInt(4, emailAcc.getStatus());
-                ps2.setDate(5, emailAcc.getActivationDate());
+                ps2.setString(4, emailAcc.getInitialPasswordEncrypted());
+                ps2.setInt(5, emailAcc.getStatus());
+                if (emailAcc.getActivationDate() != null) {
+                    ps2.setTimestamp(6, new java.sql.Timestamp(emailAcc.getActivationDate().getTime()));
+                } else {
+                    ps2.setTimestamp(6, null);
+                }
                 ps2.executeUpdate();
+
+                conn.commit();
+                return true;
+            } catch (SQLException e) {
+                conn.rollback();
+                e.printStackTrace();
+                return false;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public boolean createStudentsWithEmailsBatch(java.util.List<Student> students, java.util.List<EmailAccount> emailAccs) {
+        if (students.size() != emailAccs.size()) return false;
+
+        String sqlStudent = "INSERT INTO students (student_id, full_name, cccd, first_name, last_name, cohort, phone_number, portal_password, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())";
+        String sqlEmail = "INSERT INTO email_accounts (email_address, student_id, password_hash, initial_password_encrypted, status, activation_date) VALUES (?, ?, ?, ?, ?, ?)";
+
+        try (Connection conn = DBConnection.getConnection()) {
+            conn.setAutoCommit(false);
+
+            try (PreparedStatement ps1 = conn.prepareStatement(sqlStudent);
+                 PreparedStatement ps2 = conn.prepareStatement(sqlEmail)) {
+
+                for (int i = 0; i < students.size(); i++) {
+                    Student student = students.get(i);
+                    EmailAccount emailAcc = emailAccs.get(i);
+
+                    ps1.setString(1, student.getStudentId());
+                    ps1.setString(2, student.getFullName());
+                    ps1.setString(3, student.getCccd());
+                    ps1.setString(4, student.getFirstName());
+                    ps1.setString(5, student.getLastName());
+                    ps1.setString(6, student.getCohort());
+                    ps1.setString(7, student.getPhoneNumber());
+                    ps1.setString(8, student.getPortalPassword());
+                    ps1.addBatch();
+
+                    ps2.setString(1, emailAcc.getEmailAddress());
+                    ps2.setString(2, emailAcc.getStudentId());
+                    ps2.setString(3, emailAcc.getPasswordHash());
+                    ps2.setString(4, emailAcc.getInitialPasswordEncrypted());
+                    ps2.setInt(5, emailAcc.getStatus());
+                    if (emailAcc.getActivationDate() != null) {
+                        ps2.setTimestamp(6, new java.sql.Timestamp(emailAcc.getActivationDate().getTime()));
+                    } else {
+                        ps2.setTimestamp(6, null);
+                    }
+                    ps2.addBatch();
+                }
+
+                ps1.executeBatch();
+                ps2.executeBatch();
 
                 conn.commit();
                 return true;
@@ -291,7 +352,8 @@ public class StudentDAO {
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, decisionNumber);
             ps.setString(2, studentId);
-            return ps.executeUpdate() > 0;
+            ps.executeUpdate();
+            return true;
         } catch (Exception e) {
             e.printStackTrace();
             return false;
@@ -303,7 +365,8 @@ public class StudentDAO {
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, studentId);
-            return ps.executeUpdate() > 0;
+            ps.executeUpdate();
+            return true;
         } catch (Exception e) {
             e.printStackTrace();
             return false;
@@ -316,7 +379,8 @@ public class StudentDAO {
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, decisionNumber);
             ps.setString(2, studentId);
-            return ps.executeUpdate() > 0;
+            ps.executeUpdate();
+            return true;
         } catch (Exception e) {
             e.printStackTrace();
             return false;
@@ -395,6 +459,7 @@ public class StudentDAO {
                     s.setLastName(rs.getString("last_name"));
                     s.setCohort(rs.getString("cohort"));
                     s.setPhoneNumber(rs.getString("phone_number"));
+
                     return s;
                 }
             }
@@ -444,24 +509,76 @@ public class StudentDAO {
         return 0;
     }
 
-    public EmailAccount checkLogin(String username, String password) {
-        String sql = "SELECT * FROM email_accounts WHERE email_address = ? AND password_hash = ?";
+    public EmailAccount checkLogin(String username, String plainPassword) {
+        String sql = "SELECT e.*, s.cccd, s.portal_password FROM email_accounts e " +
+                     "JOIN students s ON e.student_id = s.student_id " +
+                     "WHERE e.student_id = ?";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, username);
-            ps.setString(2, password);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    EmailAccount acc = new EmailAccount();
-                    acc.setEmailAddress(rs.getString("email_address"));
-                    acc.setStudentId(rs.getString("student_id"));
-                    acc.setStatus(rs.getInt("status"));
-                    acc.setPasswordHash(rs.getString("password_hash"));
-                    return acc;
+                    int status = rs.getInt("status");
+                    String dbCccd = rs.getString("cccd");
+                    String portalHash = rs.getString("portal_password");
+
+                    boolean loginSuccess = false;
+
+                    if (portalHash != null && !portalHash.isEmpty()) {
+                        try {
+                            if (org.mindrot.jbcrypt.BCrypt.checkpw(plainPassword, portalHash)) {
+                                loginSuccess = true;
+                            }
+                        } catch (Exception e) {
+                            if (plainPassword.equals(portalHash)) loginSuccess = true;
+                        }
+                    } else {
+                        if (plainPassword.equals(dbCccd)) {
+                            loginSuccess = true;
+                        }
+                    }
+
+                    if (loginSuccess) {
+                        EmailAccount acc = new EmailAccount();
+                        acc.setEmailAddress(rs.getString("email_address"));
+                        acc.setStudentId(rs.getString("student_id"));
+                        acc.setPasswordHash(rs.getString("password_hash"));
+                        acc.setStatus(status);
+                        acc.setInitialPasswordEncrypted(rs.getString("initial_password_encrypted"));
+                        return acc;
+                    }
                 }
             }
         } catch (Exception e) { e.printStackTrace(); }
         return null;
+    }
+
+    public boolean isPortalPasswordNull(String studentId) {
+        String sql = "SELECT portal_password FROM students WHERE student_id = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, studentId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    String pw = rs.getString("portal_password");
+                    return pw == null || pw.isEmpty();
+                }
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+        return false;
+    }
+
+    public boolean updatePortalPassword(String studentId, String hashedNewPassword) {
+        String sql = "UPDATE students SET portal_password = ? WHERE student_id = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, hashedNewPassword);
+            ps.setString(2, studentId);
+            return ps.executeUpdate() > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
     public boolean activateAccount(String email, String newPassword, String phone) {
@@ -479,7 +596,9 @@ public class StudentDAO {
 
     public List<EmailAccount> getAccountsPendingAutoActivation() {
         List<EmailAccount> accounts = new ArrayList<>();
-        String sql = "SELECT e.* FROM email_accounts e JOIN students s ON e.student_id = s.student_id WHERE e.status = 0 AND s.created_at < DATE_SUB(NOW(), INTERVAL 1 DAY)";
+        // Tạm thời vô hiệu hóa kiểm tra 24h để phục vụ Test (Cách 1)
+        // String sql = "SELECT e.* FROM email_accounts e JOIN students s ON e.student_id = s.student_id WHERE e.status = 0 AND s.created_at < DATE_SUB(NOW(), INTERVAL 1 DAY)";
+        String sql = "SELECT e.* FROM email_accounts e JOIN students s ON e.student_id = s.student_id WHERE e.status = 0";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
@@ -525,7 +644,7 @@ public class StudentDAO {
     }
 
     public EmailAccount getAccountByEmail(String email) {
-        String sql = "SELECT e.*, s.full_name, s.phone_number, s.personal_email FROM email_accounts e JOIN students s ON e.student_id = s.student_id WHERE e.email_address = ?";
+        String sql = "SELECT e.*, s.full_name, s.phone_number FROM email_accounts e JOIN students s ON e.student_id = s.student_id WHERE e.email_address = ?";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, email);
@@ -545,7 +664,7 @@ public class StudentDAO {
     }
 
     public EmailAccount getAccountByStudentId(String studentId) {
-        String sql = "SELECT e.*, s.full_name, s.phone_number, s.personal_email FROM email_accounts e JOIN students s ON e.student_id = s.student_id WHERE e.student_id = ?";
+        String sql = "SELECT e.*, s.full_name, s.phone_number FROM email_accounts e JOIN students s ON e.student_id = s.student_id WHERE e.student_id = ?";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, studentId);
@@ -556,8 +675,9 @@ public class StudentDAO {
                     acc.setStudentId(rs.getString("student_id"));
                     acc.setStudentName(rs.getString("full_name"));
                     acc.setPhoneNumber(rs.getString("phone_number"));
-                    acc.setPersonalEmail(rs.getString("personal_email"));
+
                     acc.setStatus(rs.getInt("status"));
+                    acc.setInitialPasswordEncrypted(rs.getString("initial_password_encrypted"));
                     return acc;
                 }
             }

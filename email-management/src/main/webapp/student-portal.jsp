@@ -3,6 +3,7 @@
 <%@ page isELIgnored="false" %>
 <%@ page import="vn.edu.hmu.model.EmailAccount" %>
 <%@ page import="vn.edu.hmu.model.ITAdmin" %>
+<%@ page import="vn.edu.hmu.util.AESUtil" %>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -10,6 +11,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cổng thông tin Sinh viên - HMU</title>
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
             --primary: #0056b3;
@@ -170,6 +172,34 @@
                         <span class="info-label">Địa chỉ Email được cấp</span>
                         <span class="info-value mono email-value">${sessionScope.user.emailAddress}</span>
                     </div>
+
+                    <div class="info-item">
+                        <span class="info-label">Mật khẩu truy cập ứng dụng (Google/Office365)</span>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+<%
+    String appPw = "";
+    if (session.getAttribute("user") != null) {
+        vn.edu.hmu.model.EmailAccount currentUser = (vn.edu.hmu.model.EmailAccount)session.getAttribute("user");
+        appPw = "Hmu@" + currentUser.getStudentId();
+        if (currentUser.getInitialPasswordEncrypted() != null && !currentUser.getInitialPasswordEncrypted().isEmpty()) {
+            try {
+                String decrypted = vn.edu.hmu.util.AESUtil.decrypt(currentUser.getInitialPasswordEncrypted());
+                if (decrypted != null) {
+                    appPw = decrypted;
+                }
+            } catch (Exception ignore) {}
+        }
+    }
+%>
+                            <span id="app-password" class="info-value mono" style="color: #e74c3c; background: #fee2e2; padding: 4px 8px; border-radius: 4px; width: fit-content; filter: blur(5px); user-select: none; transition: filter 0.3s;">
+                                <%= appPw %>
+                            </span>
+                            <button id="toggle-pw" type="button" style="background: none; border: none; cursor: pointer; color: var(--secondary); font-size: 16px; padding: 4px;" onclick="togglePassword()" title="Hiện mật khẩu">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                        <small style="color: #6b7280; font-size: 11px;">(Bạn có thể đổi mật khẩu này sau khi đăng nhập vào hệ thống Google Workspace/Office365 của trường)</small>
+                    </div>
                     
                     <div class="info-item">
                         <span class="info-label">Trạng thái tài khoản</span>
@@ -191,6 +221,22 @@
         <p>&copy; 2026 Trường Đại học Y Hà Nội. All rights reserved.</p>
     </footer>
 
-
+    <script>
+        function togglePassword() {
+            var pw = document.getElementById("app-password");
+            var btn = document.getElementById("toggle-pw");
+            if (pw.style.filter === "none") {
+                pw.style.filter = "blur(5px)";
+                pw.style.userSelect = "none";
+                btn.innerHTML = '<i class="fas fa-eye"></i>';
+                btn.title = "Hiện mật khẩu";
+            } else {
+                pw.style.filter = "none";
+                pw.style.userSelect = "auto";
+                btn.innerHTML = '<i class="fas fa-eye-slash"></i>';
+                btn.title = "Ẩn mật khẩu";
+            }
+        }
+    </script>
 </body>
 </html>

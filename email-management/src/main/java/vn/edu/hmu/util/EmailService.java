@@ -55,9 +55,45 @@ public class EmailService {
             System.out.println("Đã gửi email thành công tới: " + toEmail + " (Đã bị bắt bởi Mailtrap)");
 
             } catch (Exception e) {
-            System.out.println("Lỗi gửi mail: " + e.getMessage());
+                System.out.println("Lỗi gửi mail: " + e.getMessage());
             }
+    }
+
+    public static void sendEmailAsync(String toEmail, String subject, String bodyText) {
+        Thread thread = new Thread(() -> {
+            Properties props = new Properties();
+            props.put("mail.smtp.auth", "true");
+            props.put("mail.smtp.starttls.enable", "true");
+            props.put("mail.smtp.host", "sandbox.smtp.mailtrap.io");
+            props.put("mail.smtp.port", "2525");
+
+            Session session = Session.getInstance(props, new Authenticator() {
+                @Override
+                protected PasswordAuthentication getPasswordAuthentication() {
+                    return new PasswordAuthentication(MAILTRAP_USERNAME, MAILTRAP_PASSWORD);
+                }
+            });
+
+            try {
+                Message message = new MimeMessage(session);
+                message.setFrom(new InternetAddress("admin@hmu.edu.vn", "Phòng IT - Đại học Y Hà Nội (HMU)"));
+                message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toEmail));
+                message.setSubject(subject);
+                
+                // Chuyển dòng mới thành <br> cho HTML
+                String htmlContent = "<div style='font-family: Arial, sans-serif; line-height: 1.6; color: #333;'>"
+                                   + bodyText.replace("\n", "<br>")
+                                   + "</div>";
+
+                message.setContent(htmlContent, "text/html; charset=utf-8");
+                Transport.send(message);
+                System.out.println("Đã gửi email thông báo tới: " + toEmail);
+            } catch (Exception e) {
+                System.out.println("Lỗi gửi mail async: " + e.getMessage());
             }
+        });
+        thread.start();
+    }
 
             public static void sendForgotPasswordEmail(String toEmail, String studentName, String newPassword) {
             Properties props = new Properties();

@@ -47,6 +47,7 @@ public class BatchRevokeServlet extends HttpServlet {
             return;
         }
 
+        String customNotification = request.getParameter("customNotification");
         String decisionNumber = request.getParameter("decisionNumber");
         if (decisionNumber == null || !decisionNumber.matches(".*\\/QĐ-ĐHYHN.*")) {
             request.getSession().setAttribute("errorMsg", "Số quyết định không hợp lệ. Phải chứa chuỗi '/QĐ-ĐHYHN'.");
@@ -74,7 +75,7 @@ public class BatchRevokeServlet extends HttpServlet {
             adminIdInt = Integer.parseInt(admin.getAdminID());
         } catch(Exception ignored) {}
 
-        archiveDAO.insertArchiveM02("THU_HOI", decisionNumber, filePart.getSubmittedFileName(), savedPath, adminIdInt);
+        // archiveDAO.insertArchiveM02("THU_HOI", decisionNumber, filePart.getSubmittedFileName(), savedPath, adminIdInt);
 
         int successCount = 0;
         int errorCount = 0;
@@ -89,8 +90,23 @@ public class BatchRevokeServlet extends HttpServlet {
             String updateSql = "UPDATE email_accounts SET status = 3, scheduled_delete_date = DATE_ADD(NOW(), INTERVAL 30 DAY), decision_number = ? WHERE email_address = ? OR student_id = ?";
 
             try (PreparedStatement ps = conn.prepareStatement(updateSql)) {
-                // Bỏ qua dòng tiêu đề (i = 1)
-                for (int i = 1; i <= sheet.getLastRowNum(); i++) {
+                // Tìm dòng tiêu đề
+                int dataStartRow = 1;
+                for (int i = 0; i <= Math.min(10, sheet.getLastRowNum()); i++) {
+                    Row r = sheet.getRow(i);
+                    if (r == null) continue;
+                    boolean hasEmail = false;
+                    for (Cell c : r) {
+                        String val = getSafeString(c).toLowerCase().trim();
+                        if (val.contains("email")) hasEmail = true;
+                    }
+                    if (hasEmail) {
+                        dataStartRow = i + 1;
+                        break;
+                    }
+                }
+
+                for (int i = dataStartRow; i <= sheet.getLastRowNum(); i++) {
                     Row row = sheet.getRow(i);
                     if (row == null) continue;
 
@@ -126,13 +142,28 @@ public class BatchRevokeServlet extends HttpServlet {
                     ps.setString(2, email);
                     ps.setString(3, studentId);
                     int affectedRows = ps.executeUpdate();
+                    
+                    if (affectedRows > 0 && acc != null) {
+                        archiveDAO.insertArchiveM02("THU_HOI", decisionNumber, (i + 1),
+                                fullName.isEmpty() ? acc.getStudentName() : fullName,
+                                acc.getEmailAddress(), acc.getStudentId(), "N/A", adminIdInt);
+                    }
 
                     if (affectedRows > 0) {
                         successCount++;
                         
+                        if (acc != null && customNotification != null && !customNotification.trim().isEmpty()) {
+                            vn.edu.hmu.model.Notification notif = new vn.edu.hmu.model.Notification();
+                            notif.setStudentId(acc.getStudentId());
+                            notif.setTitle("THÔNG BÁO TỪ PHÒNG IT");
+                            notif.setMessage(customNotification);
+                            notif.setCreatedAt(new java.util.Date());
+                            new vn.edu.hmu.dao.NotificationDAO().insertNotification(notif);
+                        }
+                        
                         // Gửi email thu hồi ngầm (Background Thread)
                         if (acc != null) {
-                            final String targetEmail = acc.getPersonalEmail() != null ? acc.getPersonalEmail() : acc.getEmailAddress();
+                            final String targetEmail = acc.getEmailAddress();
                             final String studentName = acc.getStudentName();
                             final int threadDelay = successCount * 500; // Delay tăng dần
                             
@@ -144,7 +175,7 @@ public class BatchRevokeServlet extends HttpServlet {
                                         String mailContent = EmailService.sendRevokeWarningEmail(targetEmail, studentName);
                                         if (mailContent != null) {
                                             vn.edu.hmu.dao.ArchiveDAO aDao = new vn.edu.hmu.dao.ArchiveDAO();
-                                            aDao.insertArchivePL01(targetEmail, studentName, "CẢNH BÁO: Thu hồi tài khoản Email Sinh viên", mailContent);
+                                            aDao.insertArchivePL01(targetEmail, studentName, decisionNumber, mailContent);
                                         }
                                     } catch (Exception e) {
                                         e.printStackTrace();

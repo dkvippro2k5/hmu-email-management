@@ -32,6 +32,8 @@ public class DeleteAccountServlet extends HttpServlet {
             return;
         }
 
+        String customNotification = request.getParameter("customNotification");
+
         StudentDAO dao = new StudentDAO();
         boolean success = dao.markPendingDelete(studentId, decisionNumber);
 
@@ -39,11 +41,20 @@ public class DeleteAccountServlet extends HttpServlet {
             // Lấy thông tin tài khoản để gửi mail cảnh báo
             EmailAccount acc = dao.getAccountByStudentId(studentId);
             if (acc != null) {
-                String toEmail = acc.getPersonalEmail() != null ? acc.getPersonalEmail() : acc.getEmailAddress();
+                if (customNotification != null && !customNotification.trim().isEmpty()) {
+                    vn.edu.hmu.model.Notification notif = new vn.edu.hmu.model.Notification();
+                    notif.setStudentId(acc.getStudentId());
+                    notif.setTitle("THÔNG BÁO TỪ PHÒNG IT");
+                    notif.setMessage(customNotification);
+                    notif.setCreatedAt(new java.util.Date());
+                    new vn.edu.hmu.dao.NotificationDAO().insertNotification(notif);
+                }
+
+                String toEmail = acc.getEmailAddress();
                 String mailContent = EmailService.sendRevokeWarningEmail(toEmail, acc.getStudentName());
                 if (mailContent != null) {
                     ArchiveDAO archiveDAO = new ArchiveDAO();
-                    archiveDAO.insertArchivePL01(toEmail, acc.getStudentName(), "CẢNH BÁO: Thu hồi tài khoản Email Sinh viên", mailContent);
+                    archiveDAO.insertArchivePL01(toEmail, acc.getStudentName(), decisionNumber, mailContent);
                 }
             }
 
@@ -62,7 +73,10 @@ public class DeleteAccountServlet extends HttpServlet {
                     adminDAO.insertActionLog(log);
                     
                     ArchiveDAO archiveDAO = new ArchiveDAO();
-                    archiveDAO.insertArchiveM02("REVOKE", decisionNumber, "Thủ công", "N/A", safeAdminId);
+                    archiveDAO.insertArchiveM02("REVOKE", decisionNumber, 0,
+                        acc != null ? acc.getStudentName() : "N/A",
+                        acc != null ? acc.getEmailAddress() : "N/A",
+                        studentId, "N/A", safeAdminId);
                 }
             } catch(Exception ignored) {}
 

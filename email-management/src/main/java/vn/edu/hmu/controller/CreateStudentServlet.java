@@ -30,11 +30,13 @@ public class CreateStudentServlet extends HttpServlet {
         String lastName = request.getParameter("lastName"); // Will keep reading parameter "lastName" from JS to avoid too many changes in frontend, rename internal variable
         String cohort = request.getParameter("cohort");
         String phoneNumber = request.getParameter("phoneNumber");
+        String email = request.getParameter("email");
+        String password = request.getParameter("password");
 
         PrintWriter out = response.getWriter();
 
-        if (studentId == null || studentId.trim().isEmpty() || fullName == null || fullName.trim().isEmpty() || firstName == null || firstName.trim().isEmpty()) {
-            out.print("{\"success\": false, \"message\": \"Mã sinh viên, họ tên và tên là bắt buộc.\"}");
+        if (studentId == null || studentId.trim().isEmpty() || fullName == null || fullName.trim().isEmpty() || email == null || email.trim().isEmpty() || password == null || password.trim().isEmpty()) {
+            out.print("{\"success\": false, \"message\": \"Mã sinh viên, họ tên, email và mật khẩu là bắt buộc.\"}");
             out.flush();
             return;
         }
@@ -48,17 +50,22 @@ public class CreateStudentServlet extends HttpServlet {
         student.setCohort(cohort);
         student.setPhoneNumber(phoneNumber);
 
-        // Sử dụng AccountGenerator để tạo Email và Mật khẩu đồng bộ với Import
-        String generatedEmail = AccountGenerator.generateEmail(firstName.trim(), lastName != null ? lastName : "", studentId.trim());
-        String rawPassword = AccountGenerator.generateDefaultPassword();
-        String passwordHash = org.mindrot.jbcrypt.BCrypt.hashpw(rawPassword, org.mindrot.jbcrypt.BCrypt.gensalt());
+        String portalPasswordHash = "";
+        if (cccd != null && !cccd.trim().isEmpty()) {
+            portalPasswordHash = org.mindrot.jbcrypt.BCrypt.hashpw(cccd.trim(), org.mindrot.jbcrypt.BCrypt.gensalt());
+        }
+        student.setPortalPassword(portalPasswordHash);
+
+        String passwordHash = org.mindrot.jbcrypt.BCrypt.hashpw(password.trim(), org.mindrot.jbcrypt.BCrypt.gensalt());
+        String encryptedInitialPassword = vn.edu.hmu.util.AESUtil.encrypt(password.trim());
 
         EmailAccount emailAccount = new EmailAccount();
         emailAccount.setStudentId(student.getStudentId());
-        emailAccount.setEmailAddress(generatedEmail);
-        emailAccount.setPasswordHash(passwordHash); 
+        emailAccount.setEmailAddress(email.trim());
+        emailAccount.setPasswordHash(passwordHash);
+        emailAccount.setInitialPasswordEncrypted(encryptedInitialPassword);
         emailAccount.setStatus(0); // Chờ kích hoạt
-        emailAccount.setActivationDate(new Date(System.currentTimeMillis()));
+        emailAccount.setActivationDate(new java.sql.Date(System.currentTimeMillis()));
 
         StudentDAO dao = new StudentDAO();
         boolean success = dao.createStudentWithEmail(student, emailAccount);
@@ -72,15 +79,15 @@ public class CreateStudentServlet extends HttpServlet {
                     int safeAdminId = 1;
                     try { if (admin.getAdminID() != null) safeAdminId = Integer.parseInt(admin.getAdminID()); } catch(Exception e) {}
                     log.setAdminId(safeAdminId);
-                    log.setTargetEmail(generatedEmail); // Use actual email for FK constraint
+                    log.setTargetEmail(email.trim()); // Use actual email for FK constraint
                     log.setActionType("CREATE");
                     log.setReason("Tạo sinh viên thủ công");
-                    log.setDetails("Email cấp: " + generatedEmail);
+                    log.setDetails("Email cấp: " + email.trim());
                     adminDAO.insertActionLog(log);
                 }
             } catch(Exception ignored) {}
 
-            out.print("{\"success\": true, \"message\": \"Thêm sinh viên mới thành công. Email: " + generatedEmail + "\"}");
+            out.print("{\"success\": true, \"message\": \"Thêm sinh viên mới thành công. Email: " + email.trim() + "\"}");
         } else {
             out.print("{\"success\": false, \"message\": \"Lỗi: Mã sinh viên đã tồn tại hoặc lỗi database.\"}");
         }

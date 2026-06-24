@@ -2,7 +2,8 @@ package vn.edu.hmu.controller;
 
 import vn.edu.hmu.dao.AdminDAO;
 import vn.edu.hmu.dao.StudentDAO;
-import vn.edu.hmu.model.ActionLog;
+import vn.edu.hmu.model.Notification;
+import vn.edu.hmu.dao.NotificationDAO;
 import vn.edu.hmu.model.EmailAccount;
 import vn.edu.hmu.model.Student;
 
@@ -31,10 +32,12 @@ public class PersonalInfoServlet extends HttpServlet {
         AdminDAO adminDao = new AdminDAO();
         
         Student student = dao.getStudentById(acc.getStudentId());
-        List<ActionLog> studentLogs = adminDao.getLogsByEmail(acc.getEmailAddress(), 5);
+        
+        NotificationDAO notifDao = new NotificationDAO();
+        List<Notification> studentNotifs = notifDao.getNotificationsForStudent(acc.getStudentId());
         
         request.setAttribute("student", student);
-        request.setAttribute("studentLogs", studentLogs);
+        request.setAttribute("studentNotifs", studentNotifs);
         request.getRequestDispatcher("personal-info.jsp").forward(request, response);
     }
 }

@@ -10,19 +10,20 @@ public class Student {
     private String lastName;
     private String cohort;
     private String phoneNumber;
+    private String portalPassword;
     private Timestamp createdAt;
 
     public Student() {}
 
     public Student(String studentId, String fullName, String cccd, String firstName,
-                   String lastName, String cohort, String phoneNumber) {
+                   String lastName, String cohort, String phoneNumber, String portalPassword) {
         this.studentId = studentId;
         this.fullName = fullName;
         this.cccd = cccd;
         this.firstName = firstName;
         this.lastName = lastName;
         this.cohort = cohort;
-        this.phoneNumber = phoneNumber;
+        this.portalPassword = portalPassword;
     }
 
     public String getStudentId() { return studentId; }
@@ -50,6 +51,10 @@ public class Student {
 
     public String getPhoneNumber() { return phoneNumber; }
     public void setPhoneNumber(String phoneNumber) { this.phoneNumber = phoneNumber; }
+
+
+    public String getPortalPassword() { return portalPassword; }
+    public void setPortalPassword(String portalPassword) { this.portalPassword = portalPassword; }
 
     public Timestamp getCreatedAt() { return createdAt; }
     public void setCreatedAt(Timestamp createdAt) { this.createdAt = createdAt; }

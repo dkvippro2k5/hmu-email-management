@@ -74,6 +74,33 @@ public class AdminDAO {
         }
     }
 
+    public boolean insertActionLogsBatch(List<ActionLog> logs) {
+        String sql = "INSERT INTO action_logs (admin_id, target_email, action_type, reason, details, action_time) VALUES (?, ?, ?, ?, ?, NOW())";
+        try (Connection conn = DBConnection.getConnection()) {
+            conn.setAutoCommit(false);
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                for (ActionLog log : logs) {
+                    ps.setInt(1, log.getAdminId());
+                    ps.setString(2, log.getTargetEmail());
+                    ps.setString(3, log.getActionType());
+                    ps.setString(4, log.getReason());
+                    ps.setString(5, log.getDetails());
+                    ps.addBatch();
+                }
+                ps.executeBatch();
+                conn.commit();
+                return true;
+            } catch (Exception e) {
+                conn.rollback();
+                e.printStackTrace();
+                return false;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
     public List<ActionLog> getLogsByEmail(String email, int limit) {
         List<ActionLog> logs = new ArrayList<>();
         String sql = "SELECT * FROM action_logs WHERE target_email = ? ORDER BY action_time DESC LIMIT ?";

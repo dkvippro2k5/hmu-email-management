@@ -38,8 +38,13 @@ public class AccountGenerator {
         return localPart + "@hmu.edu.vn";
     }
 
-    // Hàm 3: Sinh mật khẩu mặc định (Ví dụ: Hmu@ + chuỗi ngẫu nhiên 6 số)
-    public static String generateDefaultPassword() {
+    // Hàm 3: Sinh mật khẩu mặc định (Dựa trên MSSV) để đồng bộ cho First-Login
+    public static String generateDefaultPassword(String studentId) {
+        return "Hmu@" + studentId;
+    }
+
+    // Hàm 4: Sinh mật khẩu ngẫu nhiên (Dùng cho quên mật khẩu)
+    public static String generateRandomPassword() {
         Random rnd = new Random();
         int number = rnd.nextInt(999999);
         return "Hmu@" + String.format("%06d", number);

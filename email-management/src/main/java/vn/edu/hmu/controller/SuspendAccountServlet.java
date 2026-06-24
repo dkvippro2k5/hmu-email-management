@@ -60,7 +60,10 @@ public class SuspendAccountServlet extends HttpServlet {
                     adminDAO.insertActionLog(log);
                     
                     vn.edu.hmu.dao.ArchiveDAO archiveDAO = new vn.edu.hmu.dao.ArchiveDAO();
-                    archiveDAO.insertArchiveM02("SUSPEND", decisionNumber, "Thủ công", "N/A", safeAdminId);
+                    archiveDAO.insertArchiveM02("SUSPEND", decisionNumber, 0,
+                        acc != null ? acc.getStudentName() : "N/A",
+                        acc != null ? acc.getEmailAddress() : "N/A",
+                        studentId, "N/A", safeAdminId);
                 }
             } catch(Exception ignored) {}
 

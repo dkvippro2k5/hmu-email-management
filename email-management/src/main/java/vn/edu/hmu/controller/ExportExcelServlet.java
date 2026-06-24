@@ -71,7 +71,7 @@ public class ExportExcelServlet extends HttpServlet {
                 row.createCell(2).setCellValue(acc.getStudentId() != null ? acc.getStudentId() : "");
                 row.createCell(3).setCellValue(acc.getCohort() != null ? acc.getCohort() : "");
                 row.createCell(4).setCellValue(acc.getPhoneNumber() != null ? acc.getPhoneNumber() : "");
-                row.createCell(5).setCellValue(acc.getPersonalEmail() != null ? acc.getPersonalEmail() : "");
+                row.createCell(5).setCellValue("");
                 row.createCell(6).setCellValue(acc.getEmailAddress() != null ? acc.getEmailAddress() : "");
                 
                 String statusText = "Không xác định";

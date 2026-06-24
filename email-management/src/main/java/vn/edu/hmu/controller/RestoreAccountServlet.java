@@ -36,9 +36,9 @@ public class RestoreAccountServlet extends HttpServlet {
                 vn.edu.hmu.model.EmailAccount acc = dao.getAccountByStudentId(studentId);
                 if (acc != null) {
                     vn.edu.hmu.dao.ArchiveDAO archiveDAO = new vn.edu.hmu.dao.ArchiveDAO();
-                    String toEmail = acc.getPersonalEmail() != null ? acc.getPersonalEmail() : acc.getEmailAddress();
+                    String toEmail = acc.getEmailAddress();
                     String mailContent = "Tài khoản email của bạn đã được khôi phục thành công. Bạn có thể đăng nhập bình thường.";
-                    archiveDAO.insertArchivePL01(toEmail, acc.getStudentName(), "THÔNG BÁO: Khôi phục tài khoản", mailContent);
+                    archiveDAO.insertArchivePL01(toEmail, acc.getStudentName(), "N/A", mailContent);
                 }
 
                 vn.edu.hmu.model.ITAdmin admin = (vn.edu.hmu.model.ITAdmin) request.getSession().getAttribute("currentAdmin");

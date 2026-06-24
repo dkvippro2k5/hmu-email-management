@@ -7,6 +7,7 @@ public class EmailAccount {
     private String studentId;
     private String passwordHash;
     private int status; // 0: Chờ, 1: Hoạt động, 2: Bảo lưu, 3: Chờ xóa
+    private String initialPasswordEncrypted;
     private Date activationDate;
     
     // Các biến phụ để hiển thị thông tin kèm theo trên bảng
@@ -14,7 +15,7 @@ public class EmailAccount {
     private String cccd;
     private String firstName;
     private String lastName;
-    private String personalEmail;
+
     private String cohort;
     private String phoneNumber;
     
@@ -52,8 +53,6 @@ public class EmailAccount {
     public String getLastName() { return lastName; }
     public void setLastName(String lastName) { this.lastName = lastName; }
 
-    public String getPersonalEmail() { return personalEmail; }
-    public void setPersonalEmail(String personalEmail) { this.personalEmail = personalEmail; }
 
     public String getCohort() { return cohort; }
     public void setCohort(String cohort) { this.cohort = cohort; }
@@ -66,6 +65,14 @@ public class EmailAccount {
 
     public int getStatus() { return status; }
     public void setStatus(int status) { this.status = status; }
+
+    public String getInitialPasswordEncrypted() {
+        return initialPasswordEncrypted;
+    }
+
+    public void setInitialPasswordEncrypted(String initialPasswordEncrypted) {
+        this.initialPasswordEncrypted = initialPasswordEncrypted;
+    }
 
     public Date getActivationDate() { return activationDate; }
     public void setActivationDate(Date activationDate) { this.activationDate = activationDate; }

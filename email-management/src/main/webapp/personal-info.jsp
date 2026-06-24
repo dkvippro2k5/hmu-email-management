@@ -62,37 +62,41 @@
         </div>
 
         <div style="margin-top: 50px;">
-            <h2 style="color: var(--primary); font-size: 20px; border-bottom: 2px solid #eee; padding-bottom: 10px; margin-bottom: 20px;">Lịch sử hoạt động tài khoản</h2>
+<%@ page import="vn.edu.hmu.model.Notification" %>
+            <h2 style="color: var(--primary); font-size: 20px; border-bottom: 2px solid #eee; padding-bottom: 10px; margin-bottom: 20px;">Thông báo từ hệ thống</h2>
             <% 
-                List<ActionLog> logs = (List<ActionLog>) request.getAttribute("studentLogs");
-                if (logs != null && !logs.isEmpty()) {
+                List<Notification> notifs = (List<Notification>) request.getAttribute("studentNotifs");
+                if (notifs != null && !notifs.isEmpty()) {
                     SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm");
             %>
                 <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
                     <thead>
                         <tr style="background: #f8fafc; text-align: left;">
                             <th style="padding: 12px; border: 1px solid #eee;">Thời gian</th>
-                            <th style="padding: 12px; border: 1px solid #eee;">Hành động</th>
-                            <th style="padding: 12px; border: 1px solid #eee;">Chi tiết/Lý do</th>
+                            <th style="padding: 12px; border: 1px solid #eee;">Tiêu đề</th>
+                            <th style="padding: 12px; border: 1px solid #eee;">Nội dung</th>
+                            <th style="padding: 12px; border: 1px solid #eee; width: 100px; text-align: center;">Trạng thái</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <% for (ActionLog log : logs) { %>
-                            <tr>
-                                <td style="padding: 12px; border: 1px solid #eee; color: #666;"><%= sdf.format(log.getActionTime()) %></td>
-                                <td style="padding: 12px; border: 1px solid #eee;">
-                                    <span style="padding: 4px 8px; border-radius: 4px; font-weight: 600; font-size: 12px; 
-                                        <%= log.getActionType().equals("RESET_PASSWORD") ? "background: #dcfce7; color: #166534;" : "background: #f1f5f9; color: #475569;" %>">
-                                        <%= log.getActionType() %>
-                                    </span>
+                        <% for (Notification notif : notifs) { %>
+                            <tr style="<%= notif.isRead() ? "" : "background-color: #f0fdf4; font-weight: 500;" %>">
+                                <td style="padding: 12px; border: 1px solid #eee; color: #666; width: 150px;"><%= sdf.format(notif.getCreatedAt()) %></td>
+                                <td style="padding: 12px; border: 1px solid #eee; color: var(--primary);"><%= notif.getTitle() %></td>
+                                <td style="padding: 12px; border: 1px solid #eee;"><%= notif.getMessage() %></td>
+                                <td style="padding: 12px; border: 1px solid #eee; text-align: center;">
+                                    <% if (notif.isRead()) { %>
+                                        <span style="color: #94a3b8; font-size: 12px;">Đã đọc</span>
+                                    <% } else { %>
+                                        <span style="color: #10b981; font-size: 12px; font-weight: bold;">Mới</span>
+                                    <% } %>
                                 </td>
-                                <td style="padding: 12px; border: 1px solid #eee;"><%= log.getReason() %></td>
                             </tr>
                         <% } %>
                     </tbody>
                 </table>
             <% } else { %>
-                <p style="text-align: center; color: #999; font-style: italic;">Chưa có hoạt động nào được ghi lại.</p>
+                <p style="text-align: center; color: #999; font-style: italic;">Chưa có thông báo nào.</p>
             <% } %>
         </div>
         <% } else { %>

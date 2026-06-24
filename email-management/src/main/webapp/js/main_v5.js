@@ -667,9 +667,11 @@ function submitCreate() {
     const lastName = document.getElementById('newStuLastName').value.trim();
     const cohort = document.getElementById('newStuCohort').value.trim();
     const phone = document.getElementById('newStuPhone').value.trim();
+    const email = document.getElementById('newStuEmail').value.trim();
+    const password = document.getElementById('newStuPassword').value.trim();
 
-    if (!studentId || !fullName) {
-        showToast('Mã sinh viên và họ tên không được để trống.', 'error');
+    if (!studentId || !fullName || !email || !password) {
+        showToast('Mã sinh viên, họ tên, email và mật khẩu không được để trống.', 'error');
         return;
     }
 
@@ -681,6 +683,8 @@ function submitCreate() {
     formData.append('lastName', lastName);
     formData.append('cohort', cohort);
     formData.append('phoneNumber', phone);
+    formData.append('email', email);
+    formData.append('password', password);
 
     fetch(`${contextPath}/create-student`, {
         method: 'POST',

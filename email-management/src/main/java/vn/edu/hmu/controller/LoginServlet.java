@@ -50,23 +50,23 @@ public class LoginServlet extends HttpServlet {
         if (acc != null) {
             session.setAttribute("user", acc);
 
-            // KIỂM TRA FR-01.5: Đăng nhập lần đầu -> Bắt đổi mật khẩu
-            // (kể cả khi AutoActivationTask đã chuyển status = 1, sinh viên vẫn phải đổi mật khẩu mặc định)
-            boolean isDefaultPassword = acc.getPasswordHash() != null && acc.getPasswordHash().startsWith("Hmu@") && acc.getPasswordHash().length() == 10;
-            
-            if (acc.getStatus() == 0 || isDefaultPassword) {
-                response.sendRedirect("first-login.jsp"); 
+            // KIỂM TRA ĐĂNG NHẬP LẦN ĐẦU (CHƯA ĐỔI MẬT KHẨU PORTAL HOẶC CHƯA KÍCH HOẠT)
+            if (acc.getStatus() == 0 || studentDao.isPortalPasswordNull(acc.getStudentId())) {
+                // Bắt buộc đổi mật khẩu Portal trước
+                response.sendRedirect("change-password.jsp"); 
+                return;
             } 
+            
             // KIỂM TRA TÀI KHOẢN KHÓA
-            else if (acc.getStatus() == 2) {
+            if (acc.getStatus() == 2) {
                 request.setAttribute("errorMessage", "Tài khoản của bạn đang bị khóa/bảo lưu. Vui lòng liên hệ IT!");
                 request.getRequestDispatcher("login.jsp").forward(request, response);
+                return;
             }
+
             // TRẠNG THÁI BÌNH THƯỜNG (Status = 1)
-            else {
-                // Sinh viên thì cho về trang Dashboard sinh viên
-                response.sendRedirect("student-portal.jsp"); 
-            }
+            // Sinh viên vào thẳng Dashboard vì đã kích hoạt xong
+            response.sendRedirect("student-portal.jsp");
             return; // Dừng hàm
         } 
         

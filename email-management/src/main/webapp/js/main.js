@@ -552,10 +552,13 @@ function deleteAccount(studentId) {
         return;
     }
 
+    let customNotification = window.prompt(`[THU HỒI TÀI KHOẢN]\nBạn có muốn gửi thêm thông báo kèm theo cho sinh viên ${studentId} không?\n(Để trống nếu không muốn)`, "");
+
     if (confirm('CẢNH BÁO: Hành động này sẽ đưa tài khoản ' + studentId + ' vào trạng thái chờ xóa. Bạn có tiếp tục?')) {
         let formData = new URLSearchParams();
         formData.append('studentId', studentId);
         formData.append('decisionNumber', decisionNumber.trim());
+        if (customNotification) formData.append('customNotification', customNotification.trim());
 
         fetch(`${contextPath}/delete-account`, {
             method: 'POST',

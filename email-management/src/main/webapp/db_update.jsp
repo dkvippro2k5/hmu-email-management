@@ -50,6 +50,22 @@
                             ")";
         stmt.executeUpdate(createPL01);
         message += "<div style='color:green'>[OK] Đã kiểm tra/tạo bảng archive_pl01.</div>";
+        
+        try {
+            String sql = "ALTER TABLE students ADD COLUMN personal_email VARCHAR(255) DEFAULT NULL";
+            stmt.executeUpdate(sql);
+            message += "<div style='color:green'>[OK] Đã thêm cột personal_email vào students.</div>";
+        } catch (Exception e) {
+            message += "<div style='color:#666'>[INFO] Cột personal_email có thể đã tồn tại trong students: " + e.getMessage() + "</div>";
+        }
+
+        try {
+            String sql = "ALTER TABLE students ADD COLUMN portal_password VARCHAR(255) DEFAULT NULL";
+            stmt.executeUpdate(sql);
+            message += "<div style='color:green'>[OK] Đã thêm cột portal_password vào students.</div>";
+        } catch (Exception e) {
+            message += "<div style='color:#666'>[INFO] Cột portal_password có thể đã tồn tại trong students: " + e.getMessage() + "</div>";
+        }
 
     } catch (Exception ex) {
         message += "<div style='color:red'>[LỖI] Kết nối CSDL: " + ex.getMessage() + "</div>";

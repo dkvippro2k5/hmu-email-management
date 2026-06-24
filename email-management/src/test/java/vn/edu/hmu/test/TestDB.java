@@ -14,7 +14,7 @@ public class TestDB {
         System.out.println("insertActionLog success: " + logSuccess);
         
         ArchiveDAO archiveDAO = new ArchiveDAO();
-        boolean archiveSuccess = archiveDAO.insertArchiveM02("BAO_LUU", "QD-123", "test.xlsx", "/uploads/test.xlsx", 1);
+        boolean archiveSuccess = archiveDAO.insertArchiveM02("BAO_LUU", "QD-123", 1, "Nguyen Van A", "test@hmu.edu.vn", "SV123", "K1", 1);
         System.out.println("insertArchiveM02 success: " + archiveSuccess);
     }
 }

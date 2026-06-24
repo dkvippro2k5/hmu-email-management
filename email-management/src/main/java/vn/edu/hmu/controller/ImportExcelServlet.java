@@ -10,6 +10,7 @@ import vn.edu.hmu.model.Student;
 import vn.edu.hmu.dao.ArchiveDAO;
 import vn.edu.hmu.util.AccountGenerator;
 import vn.edu.hmu.util.FileStorageUtil;
+import vn.edu.hmu.util.AESUtil;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.MultipartConfig;
@@ -20,7 +21,9 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.Part;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @WebServlet("/import-excel")
 @MultipartConfig
@@ -29,6 +32,15 @@ public class ImportExcelServlet extends HttpServlet {
     private StudentDAO studentDAO = new StudentDAO();
     private AdminDAO adminDAO = new AdminDAO();
     private ArchiveDAO archiveDAO = new ArchiveDAO();
+
+    private static class ImportRow {
+        int rowNum;
+        String studentId, fullName, cccd, firstName, lastName, cohort, phone, importedEmail, importedPassword;
+        Student studentObj;
+        EmailAccount emailAccObj;
+        ActionLog detailLogObj;
+        String errorMessage;
+    }
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, java.io.IOException {
@@ -58,7 +70,7 @@ public class ImportExcelServlet extends HttpServlet {
 
         // Lưu vào kho archive_m01
         try {
-            archiveDAO.insertArchiveM01(filePart.getSubmittedFileName(), savedPath, Integer.parseInt(admin.getAdminID()));
+            // Bỏ dòng lưu archive_m01 nguyên file
         } catch (Exception ignored) {}
 
         int successCount = 0;
@@ -71,59 +83,128 @@ public class ImportExcelServlet extends HttpServlet {
 
             Sheet sheet = workbook.getSheetAt(0);
 
-            // Bỏ qua dòng tiêu đề (thường dòng 1 và 2 là tiêu đề)
-            for (int i = 2; i <= sheet.getLastRowNum(); i++) {
+            // Tìm dòng tiêu đề
+            Row headerRow = null;
+            int dataStartRow = 0;
+            for (int i = 0; i <= Math.min(10, sheet.getLastRowNum()); i++) {
+                Row r = sheet.getRow(i);
+                if (r == null) continue;
+                boolean hasSTT = false;
+                boolean hasEmail = false;
+                for (Cell c : r) {
+                    String val = getSafeString(c).toLowerCase().trim();
+                    if (val.contains("stt")) hasSTT = true;
+                    if (val.contains("email")) hasEmail = true;
+                }
+                if (hasSTT && hasEmail) {
+                    headerRow = r;
+                    dataStartRow = i + 1;
+                    break;
+                }
+            }
+
+            if (headerRow == null) {
+                request.getSession().setAttribute("errorMsg", "Không tìm thấy dòng tiêu đề hợp lệ trong file Excel!");
+                response.sendRedirect("dashboard");
+                return;
+            }
+
+            // Map các cột
+            Map<String, Integer> colMap = new HashMap<>();
+            for (Cell c : headerRow) {
+                String val = getSafeString(c).toLowerCase().trim();
+                if (val.contains("họ tên") || val.contains("ho ten")) colMap.put("fullName", c.getColumnIndex());
+                else if (val.contains("cccd")) colMap.put("cccd", c.getColumnIndex());
+                else if (val.contains("email") && !val.contains("cá nhân") && !val.contains("ca nhan")) colMap.put("email", c.getColumnIndex());
+                else if (val.contains("password") || val.contains("mật khẩu")) colMap.put("password", c.getColumnIndex());
+                else if (val.equals("tên") || val.equals("ten")) colMap.put("firstName", c.getColumnIndex());
+                else if (val.contains("họ đệm") || val.contains("ho dem")) colMap.put("lastName", c.getColumnIndex());
+                else if (val.contains("mã sinh viên") || val.contains("ma sinh vien") || val.contains("mssv")) colMap.put("studentId", c.getColumnIndex());
+                else if (val.contains("niên khóa") || val.contains("nien khoa")) colMap.put("cohort", c.getColumnIndex());
+                else if (val.contains("điện thoại") || val.contains("dien thoai") || val.contains("sđt")) colMap.put("phone", c.getColumnIndex());
+            }
+
+            List<ImportRow> rowsData = new ArrayList<>();
+            for (int i = dataStartRow; i <= sheet.getLastRowNum(); i++) {
                 Row row = sheet.getRow(i);
                 if (row == null) continue;
+                ImportRow ir = new ImportRow();
+                ir.rowNum = i + 1;
+                ir.fullName = colMap.containsKey("fullName") ? getSafeString(row.getCell(colMap.get("fullName"))) : "";
+                ir.cccd = colMap.containsKey("cccd") ? getSafeString(row.getCell(colMap.get("cccd"))) : "";
+                ir.firstName = colMap.containsKey("firstName") ? getSafeString(row.getCell(colMap.get("firstName"))) : "";
+                ir.lastName = colMap.containsKey("lastName") ? getSafeString(row.getCell(colMap.get("lastName"))) : "";
+                ir.studentId = colMap.containsKey("studentId") ? getSafeString(row.getCell(colMap.get("studentId"))) : "";
+                ir.cohort = colMap.containsKey("cohort") ? getSafeString(row.getCell(colMap.get("cohort"))) : "";
+                ir.phone = colMap.containsKey("phone") ? getSafeString(row.getCell(colMap.get("phone"))) : "";
+                ir.importedEmail = colMap.containsKey("email") ? getSafeString(row.getCell(colMap.get("email"))) : "";
+                ir.importedPassword = colMap.containsKey("password") ? getSafeString(row.getCell(colMap.get("password"))) : "";
+                
+                if (ir.fullName.isEmpty() || ir.studentId.isEmpty() || ir.importedEmail.isEmpty() || ir.importedPassword.isEmpty()) {
+                    continue;
+                }
+                rowsData.add(ir);
+                archiveDAO.insertArchiveM01(ir.rowNum, ir.fullName, ir.importedEmail, ir.studentId, ir.cohort, Integer.parseInt(admin.getAdminID()));
+            }
 
+            int finalAdminId = 1;
+            try { finalAdminId = Integer.parseInt(admin.getAdminID()); } catch(Exception ignored) {}
+            final int fAdminId = finalAdminId;
+
+            rowsData.parallelStream().forEach(ir -> {
                 try {
-                    // Đọc đúng vị trí cột M.01: 
-                    // 1: Họ tên đầy đủ, 2: CCCD, 5: Tên, 6: Họ đệm, 7: Mã sinh viên, 8: Niên khóa, 9: SĐT
-                    String fullName = getSafeString(row.getCell(1));
-                    String cccd = getSafeString(row.getCell(2));
-                    String firstName = getSafeString(row.getCell(5));
-                    String lastName = getSafeString(row.getCell(6));
-                    String studentId = getSafeString(row.getCell(7));
-                    String cohort = getSafeString(row.getCell(8));
-                    String phone = getSafeString(row.getCell(9));
-
-                    if (fullName.isEmpty() || studentId.isEmpty() || firstName.isEmpty()) {
-                        continue;
+                    String portalPasswordHash = "";
+                    if (!ir.cccd.isEmpty()) {
+                        portalPasswordHash = org.mindrot.jbcrypt.BCrypt.hashpw(ir.cccd, org.mindrot.jbcrypt.BCrypt.gensalt());
                     }
+                    String passwordHash = org.mindrot.jbcrypt.BCrypt.hashpw(ir.importedPassword, org.mindrot.jbcrypt.BCrypt.gensalt());
+                    String encryptedInitialPassword = AESUtil.encrypt(ir.importedPassword);
 
-                    // Tự động sinh Email và Mật khẩu
-                    String emailAddress = AccountGenerator.generateEmail(firstName, lastName, studentId);
-                    String rawPassword = AccountGenerator.generateDefaultPassword();
-                    String passwordHash = org.mindrot.jbcrypt.BCrypt.hashpw(rawPassword, org.mindrot.jbcrypt.BCrypt.gensalt());
+                    ir.studentObj = new Student(ir.studentId, ir.fullName, ir.cccd, ir.firstName, ir.lastName, ir.cohort, ir.phone, portalPasswordHash);
+                    
+                    ir.emailAccObj = new EmailAccount();
+                    ir.emailAccObj.setEmailAddress(ir.importedEmail);
+                    ir.emailAccObj.setStudentId(ir.studentId);
+                    ir.emailAccObj.setPasswordHash(passwordHash);
+                    ir.emailAccObj.setInitialPasswordEncrypted(encryptedInitialPassword);
+                    ir.emailAccObj.setStatus(0);
 
-                    Student student = new Student(studentId, fullName, cccd, firstName, lastName, cohort, phone);
-                    EmailAccount emailAcc = new EmailAccount();
-                    emailAcc.setEmailAddress(emailAddress);
-                    emailAcc.setStudentId(studentId);
-                    emailAcc.setPasswordHash(passwordHash);
-                    emailAcc.setStatus(0); // 0: Chờ kích hoạt
+                    ir.detailLogObj = new ActionLog();
+                    ir.detailLogObj.setActionType("CREATE_ACCOUNT");
+                    ir.detailLogObj.setTargetEmail(ir.importedEmail);
+                    ir.detailLogObj.setReason("Import tài khoản từ Excel");
+                    ir.detailLogObj.setDetails("MSSV: " + ir.studentId);
+                    ir.detailLogObj.setAdminId(fAdminId);
 
-                    boolean success = studentDAO.createStudentWithEmail(student, emailAcc);
-                    if (success) {
-                        successCount++;
-                        createdStudents.add(studentId);
-                        
-                        ActionLog detailLog = new ActionLog();
-                        detailLog.setActionType("CREATE_ACCOUNT");
-                        detailLog.setTargetEmail(emailAddress);
-                        detailLog.setReason("Tạo tài khoản qua Import Excel M.01");
-                        detailLog.setDetails("Tạo mới tài khoản cho sinh viên: " + fullName + " - MSSV: " + studentId);
-                        try {
-                            detailLog.setAdminId(Integer.parseInt(admin.getAdminID()));
-                        } catch(Exception ignored) {}
-                        adminDAO.insertActionLog(detailLog);
-                    } else {
-                        errorCount++;
-                        errorDetails.add("Dòng " + (i + 1) + ": Không thể lưu vào DB (Mã SV " + studentId + " có thể đã tồn tại).");
-                    }
                 } catch (Exception e) {
+                    ir.errorMessage = "Dòng " + ir.rowNum + ": Lỗi xử lý mã hóa - " + e.getMessage();
+                }
+            });
+
+            List<Student> batchStudents = new ArrayList<>();
+            List<EmailAccount> batchEmails = new ArrayList<>();
+            List<ActionLog> batchLogs = new ArrayList<>();
+
+            for (ImportRow ir : rowsData) {
+                if (ir.errorMessage != null) {
                     errorCount++;
-                    errorDetails.add("Dòng " + (i + 1) + ": Lỗi định dạng - " + e.getMessage());
+                    errorDetails.add(ir.errorMessage);
+                } else if (ir.studentObj != null) {
+                    batchStudents.add(ir.studentObj);
+                    batchEmails.add(ir.emailAccObj);
+                    batchLogs.add(ir.detailLogObj);
+                }
+            }
+
+            if (!batchStudents.isEmpty()) {
+                boolean batchSuccess = studentDAO.createStudentsWithEmailsBatch(batchStudents, batchEmails);
+                if (batchSuccess) {
+                    adminDAO.insertActionLogsBatch(batchLogs);
+                    successCount += batchStudents.size();
+                    for(Student s : batchStudents) createdStudents.add(s.getStudentId());
+                } else {
+                    errorCount += batchStudents.size();
+                    errorDetails.add("Lỗi chèn Database hàng loạt! Có thể có sinh viên đã tồn tại hoặc trùng lặp ID.");
                 }
             }
 

@@ -994,7 +994,6 @@ tr:hover td {
         <header class="topbar">
             <div class="page-title" id="pageTitle">Danh sách tài khoản <span>/ Quản lý email</span></div>
             <div class="user-info" style="display: flex; gap: 15px; align-items: center;">
-                <button class="btn btn-warning" style="padding: 6px 12px; font-size: 13px;" onclick="showToast('Đồng bộ thành công','success')">🔄 Đồng bộ SSO</button>
                 <span>Cán bộ: <b>Admin IT</b></span>
                 <div class="avatar">A</div>
             </div>
@@ -1220,11 +1219,16 @@ tr:hover td {
 
                 
                 <div style="display: flex; gap: 10px; align-items: center; background: var(--surface); padding: 10px 15px; border-radius: 10px; border: 1px solid var(--border); width: 100%; max-width: 600px; margin-right: auto;">
-                    <form action="${pageContext.request.contextPath}/batch-revoke" method="post" enctype="multipart/form-data" style="display: flex; align-items: center; gap: 10px; margin: 0; width: 100%;">
-                        <input type="text" name="decisionNumber" placeholder="Nhập Số QĐ (Bắt buộc chứa /QĐ-ĐHYHN)" required class="input" style="flex: 1; padding: 6px; border: 1px solid var(--border); border-radius: 6px;">
-                        <input type="file" id="revokeExcelInput" name="excelFile" accept=".xls,.xlsx" required style="display: none;" onchange="if(this.files[0]) { document.getElementById('submitRevokeBtn').style.display='block'; document.getElementById('uploadRevokeLabelBtn').innerText = 'Đã chọn: ' + this.files[0].name; }">
-                        <button type="button" class="btn btn-outline" id="uploadRevokeLabelBtn" onclick="document.getElementById('revokeExcelInput').click()" style="border-color: var(--accent); color: var(--accent); white-space: nowrap;">📁 Chọn Excel</button>
-                        <button type="submit" class="btn btn-primary" id="submitRevokeBtn" style="display: none; white-space: nowrap;" onclick="this.innerHTML = '⏳ Đang xử lý...'; this.style.opacity = '0.7';">Bắt đầu xử lý</button>
+                    <form action="${pageContext.request.contextPath}/batch-revoke" method="post" enctype="multipart/form-data" style="display: flex; flex-direction: column; gap: 10px; margin: 0; width: 100%;">
+                        <div style="display: flex; gap: 10px; align-items: center; width: 100%;">
+                            <input type="text" name="decisionNumber" placeholder="Nhập Số QĐ (Bắt buộc chứa /QĐ-ĐHYHN)" required class="input" style="flex: 1; padding: 6px; border: 1px solid var(--border); border-radius: 6px;">
+                            <input type="file" id="revokeExcelInput" name="excelFile" accept=".xls,.xlsx" required style="display: none;" onchange="if(this.files[0]) { document.getElementById('submitRevokeBtn').style.display='block'; document.getElementById('uploadRevokeLabelBtn').innerText = 'Đã chọn: ' + this.files[0].name; }">
+                            <button type="button" class="btn btn-outline" id="uploadRevokeLabelBtn" onclick="document.getElementById('revokeExcelInput').click()" style="border-color: var(--accent); color: var(--accent); white-space: nowrap;">📁 Chọn Excel</button>
+                        </div>
+                        <div style="display: flex; gap: 10px; align-items: flex-start; width: 100%;">
+                            <textarea name="customNotification" placeholder="Nhập thông báo gửi đến sinh viên (Tùy chọn)..." rows="2" class="input" style="flex: 1; padding: 6px; border: 1px solid var(--border); border-radius: 6px; resize: vertical;"></textarea>
+                            <button type="submit" class="btn btn-primary" id="submitRevokeBtn" style="display: none; white-space: nowrap; height: 100%;" onclick="this.innerHTML = '⏳ Đang xử lý...'; this.style.opacity = '0.7';">Bắt đầu xử lý</button>
+                        </div>
                     </form>
                 </div>
                 
@@ -1599,6 +1603,14 @@ tr:hover td {
                 <div class="form-group">
                     <label>Số điện thoại</label>
                     <input type="text" class="form-control" id="newStuPhone" placeholder="0987654321">
+                </div>
+                <div class="form-group">
+                    <label>Tài khoản Email HMU</label>
+                    <input type="email" class="form-control" id="newStuEmail" placeholder="Ví dụ: nva12345@hmu.edu.vn">
+                </div>
+                <div class="form-group">
+                    <label>Mật khẩu Email HMU</label>
+                    <input type="text" class="form-control" id="newStuPassword" placeholder="Ví dụ: Hmu@12345">
                 </div>
             </div>
             <div class="modal-footer">

@@ -62,13 +62,11 @@ public class BatchSuspendServlet extends HttpServlet {
             adminIdInt = Integer.parseInt(admin.getAdminID());
         } catch (Exception e) {}
 
-        // Lưu vào kho archive_m02
-        ArchiveDAO archiveDAO = new ArchiveDAO();
-        archiveDAO.insertArchiveM02("BAO_LUU", decisionNumber, filePart.getSubmittedFileName(), savedPath, adminIdInt);
-
+        // Bỏ lưu archive_m02 nguyên file
         InputStream fileContent = filePart.getInputStream();
         StudentDAO studentDAO = new StudentDAO();
         AdminDAO adminDAO = new AdminDAO();
+        ArchiveDAO archiveDAO = new ArchiveDAO();
         
         int successCount = 0;
         List<String> errorMessages = new ArrayList<>();
@@ -77,15 +75,32 @@ public class BatchSuspendServlet extends HttpServlet {
         try (Workbook workbook = WorkbookFactory.create(fileContent)) {
             Sheet sheet = workbook.getSheetAt(0); 
 
-            // Bỏ qua dòng tiêu đề
-            for (int i = 1; i <= sheet.getLastRowNum(); i++) {
+            // Tìm dòng tiêu đề
+            int dataStartRow = 1;
+            for (int i = 0; i <= Math.min(10, sheet.getLastRowNum()); i++) {
+                Row r = sheet.getRow(i);
+                if (r == null) continue;
+                boolean hasEmail = false;
+                for (Cell c : r) {
+                    String val = getSafeString(c).toLowerCase().trim();
+                    if (val.contains("email")) hasEmail = true;
+                }
+                if (hasEmail) {
+                    dataStartRow = i + 1;
+                    break;
+                }
+            }
+
+            for (int i = dataStartRow; i <= sheet.getLastRowNum(); i++) {
                 Row row = sheet.getRow(i);
                 if (row == null) continue;
 
                 try {
                     // Cột M.02: 1(Họ tên), 2(Email), 3(Mã SV), 4(Niên khóa).
+                    String fullName = getSafeString(row.getCell(1));
                     String email = getSafeString(row.getCell(2));
                     String studentId = getSafeString(row.getCell(3));
+                    String cohort = getSafeString(row.getCell(4));
 
                     if (email.isEmpty() && studentId.isEmpty()) {
                         continue; 
@@ -96,7 +111,7 @@ public class BatchSuspendServlet extends HttpServlet {
                         acc = studentDAO.getAccountByEmail(email);
                     }
                     if (acc == null && !studentId.isEmpty()) {
-                        // Nếu cần có thể tìm theo mã sinh viên, tạm thời thông qua email
+                        acc = studentDAO.getAccountByStudentId(studentId);
                     }
 
                     if (acc == null) {
@@ -111,6 +126,10 @@ public class BatchSuspendServlet extends HttpServlet {
                         if (suspended) {
                             successCount++;
                             suspendedEmails.add(email);
+                            
+                            archiveDAO.insertArchiveM02("BAO_LUU", decisionNumber, (i + 1), 
+                                fullName.isEmpty() ? acc.getStudentName() : fullName, 
+                                acc.getEmailAddress(), acc.getStudentId(), cohort, adminIdInt);
                             
                             ActionLog detailLog = new ActionLog();
                             detailLog.setActionType("SUSPEND_ACCOUNT");

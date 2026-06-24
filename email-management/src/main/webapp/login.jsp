@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Đăng nhập - HMU Email Management</title>
+    <title>Đăng nhập - Cổng Thông tin HMU</title>
     
     <!-- Đồng bộ Font chữ với Dashboard -->
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -59,7 +59,7 @@
         }
         
         .logo-box {
-            width: 48px;
+            width: 64px;
             height: 48px;
             background: var(--accent);
             color: #fff;
@@ -67,7 +67,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 20px;
+            font-size: 18px;
             font-weight: 800;
             margin: 0 auto 16px auto;
             box-shadow: 0 4px 12px var(--accent-glow);
@@ -164,9 +164,9 @@
 
     <div class="login-wrapper">
         <div class="login-header">
-            <div class="logo-box">IT</div>
-            <h2>HMU Portal</h2>
-            <p>Hệ thống Quản lý Tài khoản Email</p>
+            <div class="logo-box">HMU</div>
+            <h2>Cổng Đăng nhập</h2>
+            <p>Dành cho Cán bộ Quản trị và Sinh viên</p>
         </div>
 
         <form action="login" method="post">

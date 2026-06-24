@@ -41,7 +41,7 @@ public class ForgotPasswordServlet extends HttpServlet {
         if (acc == null) {
             request.setAttribute("error", "Không tìm thấy tài khoản với email này.");
         } else {
-            String newPassword = AccountGenerator.generateDefaultPassword();
+            String newPassword = AccountGenerator.generateRandomPassword();
             boolean success = studentDAO.updatePassword(email, newPassword);
 
             if (success) {
@@ -49,10 +49,10 @@ public class ForgotPasswordServlet extends HttpServlet {
                 ActionLog log = new ActionLog(0, email, "RESET_PASSWORD", "Hệ thống tự động cấp lại mật khẩu theo yêu cầu của sinh viên.");
                 adminDAO.insertActionLog(log);
 
-                // Send email to personal email
-                EmailService.sendForgotPasswordEmail(acc.getPersonalEmail(), acc.getStudentName(), newPassword);
+                // Send email to hmu email
+                EmailService.sendForgotPasswordEmail(acc.getEmailAddress(), acc.getStudentName(), newPassword);
 
-                request.setAttribute("message", "Mật khẩu mới đã được gửi tới email cá nhân của bạn (" + maskEmail(acc.getPersonalEmail()) + ").");
+                request.setAttribute("message", "Mật khẩu mới đã được gửi tới email của bạn (" + maskEmail(acc.getEmailAddress()) + ").");
             } else {
                 request.setAttribute("error", "Có lỗi xảy ra khi cập nhật mật khẩu. Vui lòng thử lại sau.");
             }
