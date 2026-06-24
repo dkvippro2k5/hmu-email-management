@@ -42,7 +42,7 @@ public class SearchAccountServlet extends HttpServlet {
 
         // Truy vấn database với đầy đủ bộ lọc
         StudentDAO dao = new StudentDAO();
-        List<EmailAccount> accounts = dao.searchAccountsAdvanced(keyword, status, className, department, major, cohort);
+        List<EmailAccount> accounts = dao.searchAccountsAdvanced(keyword, status, cohort);
         
         // Chuyển danh sách tài khoản thành JSON
         Gson gson = new Gson();

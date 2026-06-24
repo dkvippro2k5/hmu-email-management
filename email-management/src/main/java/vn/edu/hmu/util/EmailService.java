@@ -97,10 +97,9 @@ public class EmailService {
             }
             }
             
-            // Mô phỏng việc đồng bộ Khóa/Bảo lưu tài khoản lên Dịch vụ Email đám mây (Google Workspace/O365)
+            // Giả lập đồng bộ Khóa/Bảo lưu tài khoản lên Dịch vụ Email đám mây (Google Workspace/O365)
             public static boolean syncSuspendWithCloud(String emailAddress) throws Exception {
-                // Giả lập độ trễ mạng (API Timeout)
-                Thread.sleep(300);
+                // Đã bỏ delay mạng giả lập để tăng tốc độ xử lý hàng loạt
                 
                 // Giả lập lỗi API cho các email bắt đầu bằng từ "error" để test chức năng lỗi thủ công
                 if (emailAddress != null && emailAddress.toLowerCase().startsWith("error")) {
@@ -111,4 +110,45 @@ public class EmailService {
                 System.out.println("Đồng bộ khóa tài khoản lên Cloud thành công cho email: " + emailAddress);
                 return true;
             }
+
+            public static String sendRevokeWarningEmail(String toEmail, String studentName) {
+                Properties props = new Properties();
+                props.put("mail.smtp.auth", "true");
+                props.put("mail.smtp.starttls.enable", "true");
+                props.put("mail.smtp.host", "sandbox.smtp.mailtrap.io");
+                props.put("mail.smtp.port", "2525");
+
+                Session session = Session.getInstance(props, new Authenticator() {
+                    @Override
+                    protected PasswordAuthentication getPasswordAuthentication() {
+                        return new PasswordAuthentication(MAILTRAP_USERNAME, MAILTRAP_PASSWORD);
+                    }
+                });
+
+                try {
+                    Message message = new MimeMessage(session);
+                    message.setFrom(new InternetAddress("admin@hmu.edu.vn", "Phòng IT - Đại học Y Hà Nội (HMU)"));
+                    message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toEmail));
+                    message.setSubject("CẢNH BÁO: Thu hồi tài khoản Email Sinh viên");
+
+                    String htmlContent = "<div style='font-family: Arial, sans-serif; line-height: 1.6; color: #333;'>"
+                            + "<h2 style='color: #d9534f;'>Chào bạn " + studentName + ",</h2>"
+                            + "<p>Phòng IT trường Đại học Y Hà Nội (HMU) thông báo: Tài khoản email sinh viên của bạn đã được đưa vào danh sách chờ thu hồi/xóa vĩnh viễn.</p>"
+                            + "<div style='background-color: #fcf8e3; padding: 15px; border-left: 4px solid #f0ad4e; margin: 20px 0;'>"
+                            + "  <p><b>Thời gian ân hạn:</b> 30 ngày kể từ hôm nay.</p>"
+                            + "  <p>Vui lòng sao lưu toàn bộ dữ liệu quan trọng trên Google Drive và Gmail của bạn trước thời hạn này. Sau 30 ngày, hệ thống sẽ tự động xóa tài khoản mà không báo trước thêm.</p>"
+                            + "</div>"
+                            + "<p>Nếu bạn cho rằng đây là một sự nhầm lẫn (bạn chưa tốt nghiệp hoặc không thuộc diện thu hồi), vui lòng truy cập <a href='http://localhost:8080/email-management/' style='color: #3282b8; font-weight: bold;'>Cổng thông tin HMU</a> để gửi yêu cầu hỗ trợ (Ticket).</p>"
+                            + "<p>Trân trọng,<br><b>Phòng IT HMU</b></p>"
+                            + "</div>";
+
+                    message.setContent(htmlContent, "text/html; charset=utf-8");
+                    Transport.send(message);
+                    System.out.println("Đã gửi email cảnh báo thu hồi tới: " + toEmail);
+                    return htmlContent;
+                } catch (Exception e) {
+                    System.out.println("Lỗi gửi mail cảnh báo: " + e.getMessage());
+                    return null;
+                }
             }
+}

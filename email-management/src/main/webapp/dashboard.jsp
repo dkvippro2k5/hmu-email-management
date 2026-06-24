@@ -33,8 +33,7 @@
                 archive: 'Bảo lưu tài khoản <span>/ Quản lý bảo lưu</span>',
                 import: 'Import danh sách <span>/ Quản lý tệp dữ liệu</span>',
                 log: 'Nhật ký hoạt động <span>/ Log hệ thống</span>',
-                support: 'Support <span>/ Yêu cầu hỗ trợ</span>',
-                notify: 'Gửi thông báo nâng cao <span>/ Nhắn tin hàng loạt</span>'
+                support: 'Support <span>/ Yêu cầu hỗ trợ</span>'
             };
             let titleEl = document.getElementById('pageTitle');
             if (titleEl) {
@@ -980,9 +979,6 @@ tr:hover td {
             </a>
 
             <div class="nav-section-label">Quản lý</div>
-            <a class="nav-item" onclick="showModule('notify', this)">
-                <span class="nav-icon">📢</span> Gửi thông báo
-            </a>
             <a class="nav-item" onclick="showModule('log', this)">
                 <span class="nav-icon">📝</span> Nhật ký hoạt động
             </a>
@@ -1018,69 +1014,25 @@ tr:hover td {
             
             <div class="action-bar">
                 <div style="display: flex; gap: 10px; align-items: center;">
-                    <div style="position: relative; display: flex; align-items: center; gap: 8px;">
+                    <div style="position: relative; display: flex; align-items: center; gap: 10px;">
                         <div style="position: relative;">
                             <input type="text" id="searchInput" class="search-box" style="width: 280px; padding-left: 36px;" 
-                                   placeholder="Tìm tên, MSSV, Email..." oninput="debounceRealtimeSearch()">
+                                   placeholder="Tìm tên, MSSV..." oninput="debounceRealtimeSearch()">
                             <span style="position: absolute; left: 12px; top: 9px; color: var(--text3);">🔍</span>
                             <span id="searchLoading" style="position: absolute; right: 12px; top: 9px; display:none;">⏳</span>
                         </div>
-
-                        <div class="filter-container">
-                            <button class="btn btn-outline" id="btnFilterToggle" onclick="toggleFilterPanel()">
-                                ⚙️ Bộ lọc <span id="filterCountBadge" class="filter-badge">0</span>
-                            </button>
-                            
-                            <!-- BẢNG BỘ LỌC (MODULE) -->
-                            <div class="filter-panel" id="filterPanel">
-                                <div class="filter-header">
-                                    <span class="filter-title">Tùy chọn lọc nâng cao</span>
-                                    <button class="modal-close" onclick="toggleFilterPanel()" style="font-size:14px;">✕</button>
-                                </div>
-                                
-                                <div class="form-group">
-                                    <label>Trạng thái tài khoản</label>
-                                    <select id="statusFilter" class="form-control">
-                                        <option value="-1">Tất cả trạng thái</option>
-                                        <option value="0">Chờ kích hoạt</option>
-                                        <option value="1">Hoạt động</option>
-                                        <option value="2">Đang bảo lưu</option>
-                                        <option value="3">Chờ xóa</option>
-                                    </select>
-                                </div>
-
-                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                                    <div class="form-group">
-                                        <label>Lớp</label>
-                                        <input type="text" id="classFilter" class="form-control" placeholder="Tên lớp...">
-                                    </div>
-                                    <div class="form-group">
-                                        <label>Khóa</label>
-                                        <input type="text" id="cohortFilter" class="form-control" placeholder="2020...">
-                                    </div>
-                                </div>
-
-                                <div class="form-group">
-                                    <label>Khoa / Đơn vị</label>
-                                    <input type="text" id="deptFilter" class="form-control" placeholder="Khoa Y...">
-                                </div>
-
-                                <div class="form-group">
-                                    <label>Ngành học</label>
-                                    <input type="text" id="majorFilter" class="form-control" placeholder="Y đa khoa...">
-                                </div>
-
-                                <div class="filter-footer">
-                                    <button class="btn btn-outline btn-sm" onclick="clearFilters()">Xóa hết</button>
-                                    <button class="btn btn-primary btn-sm" onclick="applyFilters()">Áp dụng lọc</button>
-                                </div>
-                            </div>
-                        </div>
+                        <select id="statusFilter" class="input" style="padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border);" onchange="triggerApiSearch()">
+                            <option value="-1">Tất cả trạng thái</option>
+                            <option value="0">Chờ kích hoạt</option>
+                            <option value="1">Hoạt động</option>
+                            <option value="2">Đang bảo lưu</option>
+                            <option value="3">Chờ xóa</option>
+                        </select>
                     </div>
                 </div>
 
                 <div style="display: flex; gap: 10px; align-items: center;">
-                    <form id="autoImportForm" action="import-students" method="POST" enctype="multipart/form-data" style="display: none;">
+                    <form id="autoImportForm" action="import-excel" method="POST" enctype="multipart/form-data" style="display: none;">
                         <input type="file" id="excelFileInput" name="excelFile" accept=".xlsx" onchange="confirmAndImport(event)">
                     </form>
                     
@@ -1097,14 +1049,10 @@ tr:hover td {
                             <tr>
                                 <th style="width: 40px;">STT</th>
                                 <th>Họ và tên</th>
+                                <th>CCCD</th>
                                 <th>Mã SV</th>
-                                <th>Giới tính</th>
-                                <th>Ngày sinh</th>
-                                <th>Lớp</th>
-                                <th>Khoa</th>
-                                <th>Ngành học</th>
                                 <th>Niên khóa</th>
-                                <th>Email cá nhân</th>
+                                <th>SĐT</th>
                                 <th>Email được cấp</th>
                                 <th>Trạng thái</th>
                                 <th style="text-align: right;">Thao tác</th>
@@ -1122,14 +1070,10 @@ tr:hover td {
                                 <tr>
                                     <td class="mono">${loop.index + 1}</td>
                                     <td class="td-main">${acc.studentName}</td>
+                                    <td class="mono">${acc.cccd}</td>
                                     <td class="mono">${acc.studentId}</td>
-                                    <td>${acc.gender}</td>
-                                    <td class="mono">${acc.dateOfBirth}</td>
-                                    <td>${acc.className}</td>
-                                    <td>${acc.department}</td>
-                                    <td>${acc.major}</td>
                                     <td class="mono">${acc.cohort}</td>
-                                    <td class="mono" style="font-size: 12px;">${acc.personalEmail}</td>
+                                    <td class="mono">${acc.phoneNumber}</td>
                                     <td class="mono" style="color:var(--accent2); font-weight:600;">${acc.emailAddress}</td>
                                     <td>
                                         <c:choose>
@@ -1144,14 +1088,12 @@ tr:hover td {
                                             <button class="btn btn-outline btn-sm" title="Sửa" onclick="openEditModal(this)"
                                                 data-id="${acc.studentId}"
                                                 data-name="${acc.studentName}"
-                                                data-gender="${acc.gender}"
-                                                data-dob="${acc.dateOfBirth}"
-                                                data-class="${acc.className}"
-                                                data-dept="${acc.department}"
-                                                data-major="${acc.major}"
+                                                data-cccd="${acc.cccd}"
+                                                data-first-name="${acc.firstName}"
+                                                data-last-name="${acc.lastName}"
                                                 data-cohort="${acc.cohort}"
+                                                data-phone="${acc.phoneNumber}"
                                                 data-email="${acc.emailAddress}"
-                                                data-personal="${acc.personalEmail}"
                                                 data-status="${acc.status}">✏️</button>
                                             <c:choose>
                                                 <c:when test="${acc.status == 2}"><button class="btn btn-success btn-sm" title="Khôi phục" onclick="restoreAccount('${acc.studentId}')">↩️</button></c:when>
@@ -1221,28 +1163,42 @@ tr:hover td {
                         <button class="btn btn-outline btn-sm" onclick="refreshActivity()">🔄 Làm mới</button>
                     </div>
                     <div class="activity-list">
+                        <c:set var="lastDate" value="" />
                         <c:forEach var="log" items="${recentLogs}">
+                            <fmt:formatDate value="${log.actionTime}" pattern="dd/MM/yyyy" var="currentDate" />
+                            <c:if test="${currentDate != lastDate}">
+                                <div class="date-header" style="padding: 8px 15px; font-weight: 600; color: var(--text2); background: var(--surface2); margin: 15px 0 5px; border-radius: 6px; font-size: 13px;">
+                                    📅 ${currentDate == fn:substring(sessionScope.todayStr, 0, 10) ? 'Hôm nay' : currentDate}
+                                </div>
+                                <c:set var="lastDate" value="${currentDate}" />
+                            </c:if>
                             <div class="activity-item">
                                 <div class="activity-icon">
                                     <c:choose>
                                         <c:when test="${log.actionType == 'CREATE'}">➕</c:when>
+                                        <c:when test="${log.actionType == 'EDIT'}">✏️</c:when>
                                         <c:when test="${log.actionType == 'ACTIVATE'}">✅</c:when>
                                         <c:when test="${log.actionType == 'AUTO_ACTIVATE'}">🤖</c:when>
                                         <c:when test="${log.actionType == 'SUSPEND'}">⏸️</c:when>
                                         <c:when test="${log.actionType == 'DELETE'}">🗑️</c:when>
-                                        <c:when test="${log.actionType == 'SUSPEND_BATCH'}">📦</c:when>
+                                        <c:when test="${log.actionType == 'BATCH_IMPORT'}">📥</c:when>
+                                        <c:when test="${log.actionType == 'BATCH_SUSPEND'}">📦</c:when>
+                                        <c:when test="${log.actionType == 'BATCH_REVOKE'}">🚫</c:when>
+                                        <c:when test="${log.actionType == 'RESTORE'}">↩️</c:when>
                                         <c:when test="${log.actionType == 'SUSPEND_ERROR'}">❌</c:when>
-                                        <c:when test="${log.actionType == 'BATCH_RESULT'}">📋</c:when>
                                         <c:otherwise>📝</c:otherwise>
                                     </c:choose>
                                 </div>
                                 <div class="activity-content">
                                     <div class="activity-message">
-                                        <strong>${log.actionType}</strong> tài khoản <span class="mono">${log.targetEmail}</span>
+                                        <strong>${log.actionType}</strong> - <span class="mono"><c:out value="${empty log.targetEmail ? '[Hàng loạt]' : log.targetEmail}"/></span>
                                         <c:if test="${not empty log.reason}"> - ${log.reason}</c:if>
+                                        <c:if test="${not empty log.details}">
+                                            <button class="btn btn-outline" style="padding: 2px 8px; font-size: 11px; margin-left: 8px;" onclick="viewLogDetails('${fn:escapeXml(log.details)}')">👁️ Chi tiết</button>
+                                        </c:if>
                                     </div>
                                     <div class="activity-time">
-                                        <fmt:formatDate value="${log.actionTime}" pattern="dd/MM/yyyy HH:mm"/>
+                                        <fmt:formatDate value="${log.actionTime}" pattern="HH:mm"/>
                                     </div>
                                 </div>
                             </div>
@@ -1264,12 +1220,11 @@ tr:hover td {
 
                 
                 <div style="display: flex; gap: 10px; align-items: center; background: var(--surface); padding: 10px 15px; border-radius: 10px; border: 1px solid var(--border); width: 100%; max-width: 600px; margin-right: auto;">
-                    <form action="${pageContext.request.contextPath}/batch-revoke" method="post" enctype="multipart/form-data" style="display: flex; gap: 10px; width: 100%; align-items: center;">
-                        <input type="file" name="excelFile" accept=".xls,.xlsx" required class="input" style="flex: 1; padding: 6px;">
-                        <button type="submit" class="btn btn-primary" style="white-space: nowrap; padding: 8px 16px;">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/><path d="M7.646 1.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 2.707V11.5a.5.5 0 0 1-1 0V2.707L5.354 4.854a.5.5 0 1 1-.708-.708l3-3z"/></svg> 
-                            Tải lên (Thu hồi)
-                        </button>
+                    <form action="${pageContext.request.contextPath}/batch-revoke" method="post" enctype="multipart/form-data" style="display: flex; align-items: center; gap: 10px; margin: 0; width: 100%;">
+                        <input type="text" name="decisionNumber" placeholder="Nhập Số QĐ (Bắt buộc chứa /QĐ-ĐHYHN)" required class="input" style="flex: 1; padding: 6px; border: 1px solid var(--border); border-radius: 6px;">
+                        <input type="file" id="revokeExcelInput" name="excelFile" accept=".xls,.xlsx" required style="display: none;" onchange="if(this.files[0]) { document.getElementById('submitRevokeBtn').style.display='block'; document.getElementById('uploadRevokeLabelBtn').innerText = 'Đã chọn: ' + this.files[0].name; }">
+                        <button type="button" class="btn btn-outline" id="uploadRevokeLabelBtn" onclick="document.getElementById('revokeExcelInput').click()" style="border-color: var(--accent); color: var(--accent); white-space: nowrap;">📁 Chọn Excel</button>
+                        <button type="submit" class="btn btn-primary" id="submitRevokeBtn" style="display: none; white-space: nowrap;" onclick="this.innerHTML = '⏳ Đang xử lý...'; this.style.opacity = '0.7';">Bắt đầu xử lý</button>
                     </form>
                 </div>
                 
@@ -1304,46 +1259,11 @@ tr:hover td {
                     </h3>
                     
                     <div style="display: flex; gap: 10px; align-items: center;">
-                        <div class="search-box">
-                            <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/></svg>
-                            <input type="text" id="revokeSearchInput" class="search-input" placeholder="Tìm theo tên, email, mssv..." onkeyup="debounceRevokeSearch()">
-                            <svg id="revokeSearchLoading" class="search-icon" style="display: none; right: 12px; left: auto; animation: spin 1s linear infinite;" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"/></svg>
-                        </div>
-                        
-                        <div class="filter-container">
-                            <button id="btnRevokeFilterToggle" class="btn" style="background: var(--surface); border: 1px solid var(--border);" onclick="toggleRevokeFilterPanel()">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M1.5 1.5A.5.5 0 0 1 2 1h12a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.128.334L10 8.692V13.5a.5.5 0 0 1-.342.474l-3 1A.5.5 0 0 1 6 14.5V8.692L1.628 3.834A.5.5 0 0 1 1.5 3.5v-2zm1 .5v1.308l4.372 4.858A.5.5 0 0 1 7 8.5v5.306l2-.666V8.5a.5.5 0 0 1 .128-.334L13.5 3.308V2h-11z"/></svg>
-                                Lọc <span id="revokeFilterCountBadge" class="filter-badge">0</span>
-                            </button>
-                            
-                            <div id="revokeFilterPanel" class="filter-panel">
-                                <div class="filter-header">
-                                    <span class="filter-title">Lọc tài khoản chờ thu hồi</span>
-                                    <button class="btn" style="padding: 4px; border:none; background:transparent" onclick="toggleRevokeFilterPanel()">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/></svg>
-                                    </button>
-                                </div>
-                                <div class="form-group" style="margin:0">
-                                    <label class="form-label">Lớp</label>
-                                    <input type="text" id="revokeFilterClass" class="input" placeholder="VD: YK4" onkeyup="if(event.key==='Enter') applyRevokeFilters()">
-                                </div>
-                                <div class="form-group" style="margin:0">
-                                    <label class="form-label">Khoa</label>
-                                    <input type="text" id="revokeFilterDept" class="input" placeholder="VD: Y đa khoa" onkeyup="if(event.key==='Enter') applyRevokeFilters()">
-                                </div>
-                                <div class="form-group" style="margin:0">
-                                    <label class="form-label">Chuyên ngành</label>
-                                    <input type="text" id="revokeFilterMajor" class="input" placeholder="VD: Nội khoa" onkeyup="if(event.key==='Enter') applyRevokeFilters()">
-                                </div>
-                                <div class="form-group" style="margin:0">
-                                    <label class="form-label">Niên khóa</label>
-                                    <input type="text" id="revokeFilterCohort" class="input" placeholder="VD: 2020-2026" onkeyup="if(event.key==='Enter') applyRevokeFilters()">
-                                </div>
-                                <div class="filter-footer">
-                                    <button class="btn" style="background: var(--surface2); border: 1px solid var(--border);" onclick="resetRevokeFilters()">Bỏ lọc</button>
-                                    <button class="btn btn-primary" onclick="applyRevokeFilters()">Áp dụng</button>
-                                </div>
-                            </div>
+                        <div style="position: relative;">
+                            <input type="text" id="revokeSearchInput" class="search-box" style="width: 280px; padding-left: 36px;" 
+                                   placeholder="Tìm tên, MSSV..." oninput="debounceRevokeSearch()">
+                            <span style="position: absolute; left: 12px; top: 9px; color: var(--text3);">🔍</span>
+                            <span id="revokeSearchLoading" style="position: absolute; right: 12px; top: 9px; display:none;">⏳</span>
                         </div>
                     </div>
                 </div>
@@ -1368,7 +1288,7 @@ tr:hover td {
                                     <td><div style="font-weight: 500;">${acc.emailAddress}</div></td>
                                     <td style="color: var(--text2);">${acc.studentId}</td>
                                     <td>${acc.studentName}</td>
-                                    <td>${acc.className}</td>
+                                    <td>${acc.cohort}</td>
                                     <td><fmt:formatDate value="${acc.activationDate}" pattern="dd/MM/yyyy" /></td>
                                     <td>
                                         <c:if test="${not empty acc.scheduledDeleteDate}">
@@ -1398,10 +1318,11 @@ tr:hover td {
             <div class="action-bar" style="margin-bottom: 20px;">
 
                 
-                <form id="batchSuspendForm" action="batch-suspend" method="POST" enctype="multipart/form-data" style="display: flex; align-items: center; gap: 10px; margin: 0; margin-right: auto;">
+                <form id="batchSuspendForm" action="batch-suspend" method="POST" enctype="multipart/form-data" style="display: flex; align-items: center; gap: 10px; margin: 0; margin-right: auto; width: 600px;">
+                    <input type="text" name="decisionNumber" placeholder="Số QĐ (Có /QĐ-ĐHYHN)" required class="input" style="flex: 1; padding: 6px; border: 1px solid var(--border); border-radius: 6px;">
                     <input type="file" id="suspendExcelInput" name="excelFile" accept=".xlsx, .xls" style="display: none;" onchange="if(this.files[0]) { document.getElementById('submitBatchBtn').style.display='block'; document.getElementById('uploadLabelBtn').innerText = 'Đã chọn: ' + this.files[0].name; }">
-                    <button type="button" class="btn btn-outline" id="uploadLabelBtn" onclick="document.getElementById('suspendExcelInput').click()" style="border-color: var(--accent); color: var(--accent);">📁 Tải lên Excel (Khóa hàng loạt)</button>
-                    <button type="submit" class="btn btn-primary" id="submitBatchBtn" style="display: none;" onclick="this.innerHTML = '⏳ Đang xử lý...'; this.style.opacity = '0.7';">Bắt đầu xử lý</button>
+                    <button type="button" class="btn btn-outline" id="uploadLabelBtn" onclick="document.getElementById('suspendExcelInput').click()" style="border-color: var(--accent); color: var(--accent); white-space: nowrap;">📁 Chọn Excel</button>
+                    <button type="submit" class="btn btn-primary" id="submitBatchBtn" style="display: none; white-space: nowrap;" onclick="this.innerHTML = '⏳ Đang xử lý...'; this.style.opacity = '0.7';">Bắt đầu xử lý</button>
                 </form>
 
                 <button class="btn btn-outline" style="border-color: #e74c3c; color: #e74c3c; margin-left: 10px;" onclick="exportSuspendedToPDF()">📄 Xuất PDF (Hồ sơ)</button>
@@ -1412,45 +1333,9 @@ tr:hover td {
                 <div style="display: flex; gap: 10px; align-items: center;">
                     <div style="position: relative;">
                         <input type="text" id="suspendedSearchInput" class="search-box" style="width: 280px; padding-left: 36px;" 
-                               placeholder="Tìm tên, MSSV, Email..." oninput="debounceSuspendedSearch()">
+                               placeholder="Tìm tên, MSSV..." oninput="debounceSuspendedSearch()">
                         <span style="position: absolute; left: 12px; top: 9px; color: var(--text3);">🔍</span>
                         <span id="suspendedSearchLoading" style="position: absolute; right: 12px; top: 9px; display:none;">⏳</span>
-                    </div>
-
-                    <div class="filter-container">
-                        <button class="btn btn-outline" id="btnSuspendedFilterToggle" onclick="toggleSuspendedFilterPanel()">
-                            ⚙️ Bộ lọc <span id="suspendedFilterCountBadge" class="filter-badge">0</span>
-                        </button>
-                        
-                        <div class="filter-panel" id="suspendedFilterPanel">
-                            <div class="filter-header">
-                                <span class="filter-title">Tùy chọn lọc nâng cao</span>
-                                <button class="modal-close" onclick="toggleSuspendedFilterPanel()" style="font-size:14px;">✕</button>
-                            </div>
-                            
-                            <div class="filter-body">
-                                <div class="form-group">
-                                    <label style="font-size:12px; color:var(--text2); margin-bottom:4px; display:block;">Lớp học</label>
-                                    <input type="text" id="suspendedFilterClass" class="form-control" style="font-size:13px; padding:6px 10px;" placeholder="Ví dụ: YK1">
-                                </div>
-                                <div class="form-group">
-                                    <label style="font-size:12px; color:var(--text2); margin-bottom:4px; display:block;">Khoa</label>
-                                    <input type="text" id="suspendedFilterDept" class="form-control" style="font-size:13px; padding:6px 10px;" placeholder="Ví dụ: Y khoa">
-                                </div>
-                                <div class="form-group">
-                                    <label style="font-size:12px; color:var(--text2); margin-bottom:4px; display:block;">Chuyên ngành</label>
-                                    <input type="text" id="suspendedFilterMajor" class="form-control" style="font-size:13px; padding:6px 10px;" placeholder="Ví dụ: Đa khoa">
-                                </div>
-                                <div class="form-group">
-                                    <label style="font-size:12px; color:var(--text2); margin-bottom:4px; display:block;">Niên khóa</label>
-                                    <input type="text" id="suspendedFilterCohort" class="form-control" style="font-size:13px; padding:6px 10px;" placeholder="Ví dụ: 2023-2029">
-                                </div>
-                            </div>
-                            <div class="filter-footer">
-                                <button class="btn btn-outline" style="padding:6px 12px; font-size:13px;" onclick="resetSuspendedFilters()">Làm mới</button>
-                                <button class="btn btn-primary" style="padding:6px 12px; font-size:13px;" onclick="applySuspendedFilters()">Áp dụng lọc</button>
-                            </div>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -1474,7 +1359,7 @@ tr:hover td {
                                     <td><div style="font-weight: 500;">${acc.emailAddress}</div></td>
                                     <td style="color: var(--text2);">${acc.studentId}</td>
                                     <td>${acc.studentName}</td>
-                                    <td>${acc.className}</td>
+                                    <td>${acc.cohort}</td>
                                     <td><fmt:formatDate value="${acc.activationDate}" pattern="dd/MM/yyyy"/></td>
                                     <td><span class="badge" style="background: rgba(231, 76, 60, 0.15); color: #e74c3c;">Đã bảo lưu</span></td>
                                 </tr>
@@ -1520,7 +1405,7 @@ tr:hover td {
                             <c:forEach items="${dsHoTro}" var="r">
                                 <tr>
                                     <td class="mono">${r.requestId}</td>
-                                    <td><strong>${r.studentName}</strong><br><span style="font-size: 12px; color: var(--text3);">${r.studentId}</span></td>
+                                    <td><strong><c:out value="${empty r.studentName ? 'Không rõ' : r.studentName}"/></strong><br><span style="font-size: 12px; color: var(--text3);">${r.studentId}</span></td>
                                     <td><strong>${r.subject}</strong></td>
                                     <td style="max-width: 300px; white-space: normal;">${r.content}</td>
                                     <td class="mono">${r.createdAt}</td>
@@ -1551,56 +1436,6 @@ tr:hover td {
             </div>
         </div>
 
-        <div class="page" id="page-notify">
-            <div class="page-header" style="margin-bottom: 20px;">
-                
-            </div>
-            <div style="background: var(--surface); padding: 24px; border-radius: 12px; border: 1px solid var(--border); max-width: 900px; width: 100%;">
-                <form action="${pageContext.request.contextPath}/send-notification" method="post">
-                    
-                    <div style="background: var(--bg); padding: 15px; border-radius: 8px; margin-bottom: 20px;">
-                        <h4 style="margin-top: 0; margin-bottom: 12px; font-weight: 600;">Lọc đối tượng nhận:</h4>
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px;">
-                            <div class="form-group">
-                                <label style="font-size: 13px; font-weight: 500;">Trạng thái tài khoản</label>
-                                <select name="status" class="input" style="width: 100%; padding: 8px;">
-                                    <option value="">-- Tất cả --</option>
-                                    <option value="1" selected>Đang hoạt động</option>
-                                    <option value="0">Chờ kích hoạt</option>
-                                    <option value="2">Đang bảo lưu</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label style="font-size: 13px; font-weight: 500;">Khoa</label>
-                                <input type="text" name="department" class="input" style="width: 100%; padding: 8px;" placeholder="Ví dụ: Khoa Y">
-                            </div>
-                            <div class="form-group">
-                                <label style="font-size: 13px; font-weight: 500;">Ngành học</label>
-                                <input type="text" name="major" class="input" style="width: 100%; padding: 8px;" placeholder="Ví dụ: Y khoa">
-                            </div>
-                            <div class="form-group">
-                                <label style="font-size: 13px; font-weight: 500;">Lớp</label>
-                                <input type="text" name="className" class="input" style="width: 100%; padding: 8px;" placeholder="Ví dụ: Y117A">
-                            </div>
-                            <div class="form-group">
-                                <label style="font-size: 13px; font-weight: 500;">Khóa</label>
-                                <input type="text" name="cohort" class="input" style="width: 100%; padding: 8px;" placeholder="Ví dụ: 117">
-                            </div>
-                        </div>
-                        <p style="margin-top: 10px; margin-bottom: 0; font-size: 12px; color: var(--text3);">* Bỏ trống nếu muốn gửi cho tất cả.</p>
-                    </div>
-
-                    <div class="form-group" style="margin-bottom: 20px;">
-                        <label for="notifySubject" style="font-weight: 600; margin-bottom: 8px; display: block;">Tiêu đề thông báo <span style="color:red">*</span></label>
-                        <input type="text" id="notifySubject" name="subject" class="input" style="width: 100%; padding: 12px;" placeholder="Nhập tiêu đề email..." required>
-                    </div>
-                    <div class="form-group" style="margin-bottom: 20px;">
-                        <label for="notifyMessage" style="font-weight: 600; margin-bottom: 8px; display: block;">Nội dung thông báo <span style="color:red">*</span></label>
-                        <textarea id="notifyMessage" name="message" class="input" style="width: 100%; padding: 12px; min-height: 200px; resize: vertical;" placeholder="Kính gửi các bạn sinh viên,..." required></textarea>
-                    </div>
-                    <div style="display: flex; justify-content: flex-end; gap: 15px;">
-                        <button type="reset" class="btn btn-outline" style="padding: 10px 20px;">Xóa trắng</button>
-                        <button type="submit" class="btn btn-primary" style="padding: 10px 20px; font-weight: 600;">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style="margin-right:6px;"><path d="M15.964.686a.5.5 0 0 0-.65-.65L.767 5.855H.766l-.452.18a.5.5 0 0 0-.082.887l.41.26.001.002 4.995 3.178 3.178 4.995.002.002.26.41a.5.5 0 0 0 .886-.083l6-15Zm-1.833 1.89L6.637 10.07l-.215-.338a.5.5 0 0 0-.154-.154l-.338-.215 7.494-7.494 1.178-.471-.47 1.178Z"/></svg>
                             Gửi Thông Báo
                         </button>
@@ -1632,20 +1467,29 @@ tr:hover td {
                                     <td>
                                         <span class="badge" style="background:var(--surface2); color:var(--text);">
                                             <c:choose>
+                                                <c:when test="${log.actionType == 'CREATE'}">➕</c:when>
+                                                <c:when test="${log.actionType == 'EDIT'}">✏️</c:when>
                                                 <c:when test="${log.actionType == 'ACTIVATE'}">✅</c:when>
                                                 <c:when test="${log.actionType == 'AUTO_ACTIVATE'}">🤖</c:when>
                                                 <c:when test="${log.actionType == 'SUSPEND'}">⏸️</c:when>
                                                 <c:when test="${log.actionType == 'DELETE'}">🗑️</c:when>
-                                                <c:when test="${log.actionType == 'SUSPEND_BATCH'}">📦</c:when>
+                                                <c:when test="${log.actionType == 'BATCH_IMPORT'}">📥</c:when>
+                                                <c:when test="${log.actionType == 'BATCH_SUSPEND'}">📦</c:when>
+                                                <c:when test="${log.actionType == 'BATCH_REVOKE'}">🚫</c:when>
+                                                <c:when test="${log.actionType == 'RESTORE'}">↩️</c:when>
                                                 <c:when test="${log.actionType == 'SUSPEND_ERROR'}">❌</c:when>
-                                                <c:when test="${log.actionType == 'BATCH_RESULT'}">📋</c:when>
                                                 <c:otherwise>📝</c:otherwise>
                                             </c:choose>
                                             ${log.actionType}
                                         </span>
                                     </td>
-                                    <td class="mono" style="color: var(--accent2);">${log.targetEmail}</td>
-                                    <td>${log.reason}</td>
+                                    <td class="mono" style="color: var(--accent2);"><c:out value="${empty log.targetEmail ? '[Hàng loạt]' : log.targetEmail}"/></td>
+                                    <td>
+                                        ${log.reason}
+                                        <c:if test="${not empty log.details}">
+                                            <button class="btn btn-sm btn-outline" style="margin-left: 10px; padding: 2px 8px; font-size: 12px;" onclick="viewLogDetails('${fn:escapeXml(log.details)}')">👁️ Xem chi tiết</button>
+                                        </c:if>
+                                    </td>
                                 </tr>
                             </c:forEach>
                             <c:if test="${empty allLogs}">
@@ -1676,41 +1520,28 @@ tr:hover td {
                     <input type="text" class="form-control mono" id="editStuId" readonly style="background:var(--bg3); color:var(--text3); cursor:not-allowed;">
                 </div>
                 <div class="form-group">
-                    <label>Họ và tên</label>
+                    <label>Họ tên đầy đủ</label>
                     <input type="text" class="form-control" id="editStuName">
                 </div>
                 <div class="form-group">
-                    <label>Ngày sinh</label>
-                    <input type="date" class="form-control" id="editStuDob">
+                    <label>CCCD</label>
+                    <input type="text" class="form-control" id="editStuCccd">
                 </div>
                 <div class="form-group">
-                    <label>Giới tính</label>
-                    <select class="form-control" id="editStuGender">
-                        <option value="">Chọn giới tính</option>
-                        <option value="Nam">Nam</option>
-                        <option value="Nữ">Nữ</option>
-                        <option value="Khác">Khác</option>
-                    </select>
+                    <label>Tên</label>
+                    <input type="text" class="form-control" id="editStuFirstName">
                 </div>
                 <div class="form-group">
-                    <label>Tên lớp</label>
-                    <input type="text" class="form-control" id="editStuClass">
-                </div>
-                <div class="form-group">
-                    <label>Khoa</label>
-                    <input type="text" class="form-control" id="editStuDept">
-                </div>
-                <div class="form-group">
-                    <label>Ngành học</label>
-                    <input type="text" class="form-control" id="editStuMajor">
+                    <label>Họ đệm</label>
+                    <input type="text" class="form-control" id="editStuLastName">
                 </div>
                 <div class="form-group">
                     <label>Niên khóa</label>
                     <input type="text" class="form-control" id="editStuCohort">
                 </div>
                 <div class="form-group">
-                    <label>Email cá nhân</label>
-                    <input type="email" class="form-control" id="editStuPersonalEmail">
+                    <label>Số điện thoại</label>
+                    <input type="text" class="form-control" id="editStuPhone">
                 </div>
                 <div class="form-group">
                     <label>Email được cấp</label>
@@ -1746,41 +1577,28 @@ tr:hover td {
                     <input type="text" class="form-control mono" id="newStuId" placeholder="VD: SV12345">
                 </div>
                 <div class="form-group">
-                    <label>Họ và tên</label>
+                    <label>Họ tên đầy đủ</label>
                     <input type="text" class="form-control" id="newStuName" placeholder="Nguyễn Văn A">
                 </div>
                 <div class="form-group">
-                    <label>Ngày sinh</label>
-                    <input type="date" class="form-control" id="newStuDob">
+                    <label>CCCD</label>
+                    <input type="text" class="form-control" id="newStuCccd" placeholder="012345678901">
                 </div>
                 <div class="form-group">
-                    <label>Giới tính</label>
-                    <select class="form-control" id="newStuGender">
-                        <option value="">Chọn giới tính</option>
-                        <option value="Nam">Nam</option>
-                        <option value="Nữ">Nữ</option>
-                        <option value="Khác">Khác</option>
-                    </select>
+                    <label>Tên</label>
+                    <input type="text" class="form-control" id="newStuFirstName" placeholder="A">
                 </div>
                 <div class="form-group">
-                    <label>Tên lớp</label>
-                    <input type="text" class="form-control" id="newStuClass" placeholder="Ví dụ: K15 Y Đa khoa">
-                </div>
-                <div class="form-group">
-                    <label>Khoa / Đơn vị</label>
-                    <input type="text" class="form-control" id="newStuDept" placeholder="Ví dụ: Khoa Y">
-                </div>
-                <div class="form-group">
-                    <label>Ngành học</label>
-                    <input type="text" class="form-control" id="newStuMajor" placeholder="Ví dụ: Y đa khoa">
+                    <label>Họ đệm</label>
+                    <input type="text" class="form-control" id="newStuLastName" placeholder="Nguyễn Văn">
                 </div>
                 <div class="form-group">
                     <label>Niên khóa</label>
                     <input type="text" class="form-control" id="newStuCohort" placeholder="Ví dụ: 2020-2026">
                 </div>
                 <div class="form-group">
-                    <label>Email cá nhân</label>
-                    <input type="email" class="form-control" id="newStuPersonalEmail" placeholder="email@example.com">
+                    <label>Số điện thoại</label>
+                    <input type="text" class="form-control" id="newStuPhone" placeholder="0987654321">
                 </div>
             </div>
             <div class="modal-footer">
@@ -1842,6 +1660,22 @@ tr:hover td {
                         <button type="submit" class="btn btn-primary" onclick="closeExportModal()">Xác nhận Xuất</button>
                     </div>
                 </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- LOG DETAILS MODAL -->
+    <div class="modal-overlay" id="logDetailsModal">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <h2>Chi tiết Hoạt động</h2>
+                <button class="close-btn" onclick="closeLogDetailsModal()">✕</button>
+            </div>
+            <div style="padding: 20px; max-height: 400px; overflow-y: auto;">
+                <div id="logDetailsContent" style="background: var(--surface2); padding: 15px; border-radius: 8px; font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--text); white-space: pre-wrap; word-break: break-all;"></div>
+            </div>
+            <div class="modal-footer" style="padding: 15px 20px; border-top: 1px solid var(--border);">
+                <button type="button" class="btn btn-primary" onclick="closeLogDetailsModal()">Đóng</button>
             </div>
         </div>
     </div>
@@ -2018,6 +1852,6 @@ tr:hover td {
         }
     </script>
 
-    <script src="${pageContext.request.contextPath}/js/main.js"></script>
+    <script src="${pageContext.request.contextPath}/js/main_v5.js?v=5"></script>
 </body>
 </html>

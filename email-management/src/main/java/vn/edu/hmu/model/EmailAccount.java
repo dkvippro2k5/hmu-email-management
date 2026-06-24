@@ -8,15 +8,17 @@ public class EmailAccount {
     private String passwordHash;
     private int status; // 0: Chờ, 1: Hoạt động, 2: Bảo lưu, 3: Chờ xóa
     private Date activationDate;
-    private String studentName; // Thêm trường này để hiển thị tên sinh viên trên Dashboard
-    private String gender;
-    private String dateOfBirth;
-    private String className;
-    private String major;
-    private String department;
-    private String cohort;
+    
+    // Các biến phụ để hiển thị thông tin kèm theo trên bảng
+    private String studentName; 
+    private String cccd;
+    private String firstName;
+    private String lastName;
     private String personalEmail;
-    private String decisionNumber; // Thêm trường này để lưu số quyết định khi khóa tài khoản
+    private String cohort;
+    private String phoneNumber;
+    
+    private String decisionNumber; // Lưu số quyết định bảo lưu
     private Date scheduledDeleteDate;
 
     public EmailAccount() {}
@@ -41,26 +43,23 @@ public class EmailAccount {
     public String getStudentName() { return studentName; }
     public void setStudentName(String studentName) { this.studentName = studentName; }
 
-    public String getGender() { return gender; }
-    public void setGender(String gender) { this.gender = gender; }
+    public String getCccd() { return cccd; }
+    public void setCccd(String cccd) { this.cccd = cccd; }
 
-    public String getDateOfBirth() { return dateOfBirth; }
-    public void setDateOfBirth(String dateOfBirth) { this.dateOfBirth = dateOfBirth; }
+    public String getFirstName() { return firstName; }
+    public void setFirstName(String firstName) { this.firstName = firstName; }
 
-    public String getClassName() { return className; }
-    public void setClassName(String className) { this.className = className; }
+    public String getLastName() { return lastName; }
+    public void setLastName(String lastName) { this.lastName = lastName; }
 
-    public String getMajor() { return major; }
-    public void setMajor(String major) { this.major = major; }
-
-    public String getDepartment() { return department; }
-    public void setDepartment(String department) { this.department = department; }
+    public String getPersonalEmail() { return personalEmail; }
+    public void setPersonalEmail(String personalEmail) { this.personalEmail = personalEmail; }
 
     public String getCohort() { return cohort; }
     public void setCohort(String cohort) { this.cohort = cohort; }
 
-    public String getPersonalEmail() { return personalEmail; }
-    public void setPersonalEmail(String personalEmail) { this.personalEmail = personalEmail; }
+    public String getPhoneNumber() { return phoneNumber; }
+    public void setPhoneNumber(String phoneNumber) { this.phoneNumber = phoneNumber; }
 
     public String getPasswordHash() { return passwordHash; }
     public void setPasswordHash(String passwordHash) { this.passwordHash = passwordHash; }

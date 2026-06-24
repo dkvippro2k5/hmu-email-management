@@ -5,59 +5,51 @@ import java.sql.Timestamp;
 public class Student {
     private String studentId;
     private String fullName;
-    private String gender;
-    private String dateOfBirth;
-    private String className;
-    private String department;
-    private String major;
-    private String cohort; // Niên khóa (K60, K61...)
-    private String personalEmail;
+    private String cccd;
+    private String firstName;
+    private String lastName;
+    private String cohort;
+    private String phoneNumber;
     private Timestamp createdAt;
 
-    // Constructor không tham số (Bắt buộc cho Java Beans)
     public Student() {}
 
-    // Constructor đầy đủ tham số để khởi tạo nhanh
-    public Student(String studentId, String fullName, String gender, String dateOfBirth,
-                   String className, String department, String major, String cohort, String personalEmail) {
+    public Student(String studentId, String fullName, String cccd, String firstName,
+                   String lastName, String cohort, String phoneNumber) {
         this.studentId = studentId;
         this.fullName = fullName;
-        this.gender = gender;
-        this.dateOfBirth = dateOfBirth;
-        this.className = className;
-        this.department = department;
-        this.major = major;
+        this.cccd = cccd;
+        this.firstName = firstName;
+        this.lastName = lastName;
         this.cohort = cohort;
-        this.personalEmail = personalEmail;
+        this.phoneNumber = phoneNumber;
     }
 
-    // Getter và Setter
     public String getStudentId() { return studentId; }
     public void setStudentId(String studentId) { this.studentId = studentId; }
 
     public String getFullName() { return fullName; }
     public void setFullName(String fullName) { this.fullName = fullName; }
 
-    public String getGender() { return gender; }
-    public void setGender(String gender) { this.gender = gender; }
+    public String getCccd() { return cccd; }
+    public void setCccd(String cccd) { this.cccd = cccd; }
 
-    public String getDateOfBirth() { return dateOfBirth; }
-    public void setDateOfBirth(String dateOfBirth) { this.dateOfBirth = dateOfBirth; }
+    public String getFirstName() { return firstName; }
+    public void setFirstName(String firstName) { this.firstName = firstName; }
 
-    public String getClassName() { return className; }
-    public void setClassName(String className) { this.className = className; }
+    public String getLastName() {
+        return lastName;
+    }
 
-    public String getDepartment() { return department; }
-    public void setDepartment(String department) { this.department = department; }
-
-    public String getMajor() { return major; }
-    public void setMajor(String major) { this.major = major; }
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
 
     public String getCohort() { return cohort; }
     public void setCohort(String cohort) { this.cohort = cohort; }
 
-    public String getPersonalEmail() { return personalEmail; }
-    public void setPersonalEmail(String personalEmail) { this.personalEmail = personalEmail; }
+    public String getPhoneNumber() { return phoneNumber; }
+    public void setPhoneNumber(String phoneNumber) { this.phoneNumber = phoneNumber; }
 
     public Timestamp getCreatedAt() { return createdAt; }
     public void setCreatedAt(Timestamp createdAt) { this.createdAt = createdAt; }

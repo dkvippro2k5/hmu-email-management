@@ -6,28 +6,37 @@ public class ActionLog {
     private int logId;
     private int adminId;
     private String targetEmail;
-    private String actionType; // 'CREATE', 'SUSPEND', 'ACTIVATE', 'DELETE'
+    private String actionType; // 'CREATE', 'SUSPEND', 'ACTIVATE', 'DELETE', 'BATCH_IMPORT', 'BATCH_SUSPEND', 'BATCH_REVOKE'
     private String reason;
+    private String details;
     private Timestamp actionTime;
 
     // Constructor rỗng (Bắt buộc)
     public ActionLog() {}
 
-    // Constructor dùng khi thêm mới log (Không cần truyền logId và actionTime vì MySQL tự sinh)
     public ActionLog(int adminId, String targetEmail, String actionType, String reason) {
         this.adminId = adminId;
         this.targetEmail = targetEmail;
         this.actionType = actionType;
         this.reason = reason;
+        this.details = null;
     }
 
-    // Constructor lấy dữ liệu từ DB lên
-    public ActionLog(int logId, int adminId, String targetEmail, String actionType, String reason, Timestamp actionTime) {
+    public ActionLog(int adminId, String targetEmail, String actionType, String reason, String details) {
+        this.adminId = adminId;
+        this.targetEmail = targetEmail;
+        this.actionType = actionType;
+        this.reason = reason;
+        this.details = details;
+    }
+
+    public ActionLog(int logId, int adminId, String targetEmail, String actionType, String reason, String details, Timestamp actionTime) {
         this.logId = logId;
         this.adminId = adminId;
         this.targetEmail = targetEmail;
         this.actionType = actionType;
         this.reason = reason;
+        this.details = details;
         this.actionTime = actionTime;
     }
 
@@ -49,6 +58,9 @@ public class ActionLog {
 
     public String getReason() { return reason; }
     public void setReason(String reason) { this.reason = reason; }
+
+    public String getDetails() { return details; }
+    public void setDetails(String details) { this.details = details; }
 
     public Timestamp getActionTime() { return actionTime; }
     public void setActionTime(Timestamp actionTime) { this.actionTime = actionTime; }

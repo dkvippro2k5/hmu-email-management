@@ -3,6 +3,9 @@ package vn.edu.hmu.controller;
 import vn.edu.hmu.dao.StudentDAO;
 import vn.edu.hmu.model.EmailAccount;
 import vn.edu.hmu.model.Student;
+import vn.edu.hmu.model.ITAdmin;
+import vn.edu.hmu.dao.AdminDAO;
+import vn.edu.hmu.model.ActionLog;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -23,13 +26,12 @@ public class UpdateStudentServlet extends HttpServlet {
 
         String studentId = request.getParameter("studentId");
         String fullName = request.getParameter("fullName");
-        String gender = request.getParameter("gender");
-        String dateOfBirth = request.getParameter("dateOfBirth");
-        String className = request.getParameter("className");
-        String department = request.getParameter("department");
-        String major = request.getParameter("major");
+        String cccd = request.getParameter("cccd");
+        String firstName = request.getParameter("firstName");
+        String lastName = request.getParameter("lastName"); // The parameter is mapped to "lastName" in JS for now, keep parsing it as lastName or rename it later, but let's rename the variable to lastName.
         String cohort = request.getParameter("cohort");
-        String personalEmail = request.getParameter("personalEmail");
+        String phoneNumber = request.getParameter("phoneNumber");
+        
         String emailAddress = request.getParameter("emailAddress");
         String statusRaw = request.getParameter("status");
 
@@ -48,18 +50,36 @@ public class UpdateStudentServlet extends HttpServlet {
 
         Student student = new Student();
         student.setFullName(fullName);
-        student.setGender(gender);
-        student.setDateOfBirth(dateOfBirth);
-        student.setClassName(className);
-        student.setDepartment(department);
-        student.setMajor(major);
+        student.setCccd(cccd);
+        student.setFirstName(firstName);
+        student.setLastName(lastName);
         student.setCohort(cohort);
-        student.setPersonalEmail(personalEmail);
+        student.setPhoneNumber(phoneNumber);
 
         StudentDAO dao = new StudentDAO();
         boolean success = dao.updateStudentInfo(studentId, student, emailAddress, status);
 
         if (success) {
+            // Log action
+            ITAdmin currentAdmin = (ITAdmin) request.getSession().getAttribute("currentAdmin");
+            if (currentAdmin != null) {
+                try {
+                    int safeAdminId = 1;
+                    try { if (currentAdmin.getAdminID() != null) safeAdminId = Integer.parseInt(currentAdmin.getAdminID()); } catch(Exception e) {}
+                    AdminDAO adminDAO = new AdminDAO();
+                    ActionLog log = new ActionLog();
+                    log.setAdminId(safeAdminId);
+                    log.setTargetEmail(emailAddress);
+                    log.setActionType("EDIT");
+                    log.setReason("Cập nhật thông tin sinh viên/tài khoản");
+                    String details = String.format("{\"studentId\": \"%s\", \"fullName\": \"%s\", \"status\": %d}", studentId, fullName, status);
+                    log.setDetails(details);
+                    adminDAO.insertActionLog(log);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+
             out.print("{\"success\": true, \"message\": \"Cập nhật thông tin sinh viên thành công.\"}");
         } else {
             out.print("{\"success\": false, \"message\": \"Lỗi khi lưu thông tin sinh viên.\"}");

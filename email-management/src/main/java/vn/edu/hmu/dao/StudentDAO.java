@@ -13,7 +13,7 @@ import java.util.List;
 public class StudentDAO {
 
     public String importStudentAndEmail(Student student, EmailAccount emailAcc) {
-        String sqlStudent = "INSERT INTO students (student_id, full_name, gender, date_of_birth, class_name, department, major, cohort, personal_email, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())";
+        String sqlStudent = "INSERT INTO students (student_id, full_name, cccd, first_name, last_name, cohort, phone_number, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, NOW())";
         String sqlEmail = "INSERT INTO email_accounts (email_address, student_id, password_hash, status, activation_date) VALUES (?, ?, ?, ?, ?)";
 
         try (Connection conn = DBConnection.getConnection()) {
@@ -27,13 +27,11 @@ public class StudentDAO {
 
                 ps1.setString(1, student.getStudentId());
                 ps1.setString(2, student.getFullName());
-                ps1.setString(3, student.getGender());
-                ps1.setString(4, student.getDateOfBirth());
-                ps1.setString(5, student.getClassName());
-                ps1.setString(6, student.getDepartment());
-                ps1.setString(7, student.getMajor());
-                ps1.setString(8, student.getCohort());
-                ps1.setString(9, student.getPersonalEmail());
+                ps1.setString(3, student.getCccd());
+                ps1.setString(4, student.getFirstName());
+                ps1.setString(5, student.getLastName());
+                ps1.setString(6, student.getCohort());
+                ps1.setString(7, student.getPhoneNumber());
                 ps1.executeUpdate();
 
                 ps2.setString(1, emailAcc.getEmailAddress());
@@ -56,7 +54,7 @@ public class StudentDAO {
 
     public List<EmailAccount> getAllAccounts() {
         List<EmailAccount> accountList = new ArrayList<>();
-        String sql = "SELECT e.email_address, e.student_id, s.full_name, s.gender, s.date_of_birth, s.class_name, s.department, s.major, s.cohort, s.personal_email, e.status, e.activation_date " +
+        String sql = "SELECT e.email_address, e.student_id, s.full_name, s.cccd, s.first_name, s.last_name, s.cohort, s.phone_number, e.status, e.activation_date " +
                      "FROM email_accounts e " +
                      "JOIN students s ON e.student_id = s.student_id " +
                      "ORDER BY e.activation_date DESC";
@@ -70,13 +68,11 @@ public class StudentDAO {
                 acc.setEmailAddress(rs.getString("email_address"));
                 acc.setStudentId(rs.getString("student_id"));
                 acc.setStudentName(rs.getString("full_name"));
-                acc.setGender(rs.getString("gender"));
-                acc.setDateOfBirth(rs.getString("date_of_birth"));
-                acc.setClassName(rs.getString("class_name"));
-                acc.setDepartment(rs.getString("department"));
-                acc.setMajor(rs.getString("major"));
+                acc.setCccd(rs.getString("cccd"));
+                acc.setFirstName(rs.getString("first_name"));
+                acc.setLastName(rs.getString("last_name"));
                 acc.setCohort(rs.getString("cohort"));
-                acc.setPersonalEmail(rs.getString("personal_email"));
+                acc.setPhoneNumber(rs.getString("phone_number"));
                 acc.setStatus(rs.getInt("status"));
                 acc.setActivationDate(rs.getDate("activation_date"));
                 
@@ -88,12 +84,11 @@ public class StudentDAO {
         return accountList;
     }
 
-    public List<EmailAccount> searchAccountsAdvanced(String keyword, int status, String className, String department, String major, String cohort) {
+    public List<EmailAccount> searchAccountsAdvanced(String keyword, int status, String cohort) {
         List<EmailAccount> accountList = new ArrayList<>();
         
-        // Sửa lỗi: e.email_address thay vì s.email_address
         StringBuilder sql = new StringBuilder(
-            "SELECT e.email_address, s.student_id, s.full_name, s.gender, s.date_of_birth, s.class_name, s.department, s.major, s.cohort, s.personal_email, e.status, e.activation_date, e.scheduled_delete_date " +
+            "SELECT e.email_address, s.student_id, s.full_name, s.cccd, s.first_name, s.last_name, s.cohort, s.phone_number, e.status, e.activation_date, e.scheduled_delete_date " +
             "FROM students s " +
             "JOIN email_accounts e ON s.student_id = e.student_id " +
             "WHERE (s.student_id LIKE ? OR s.full_name LIKE ? OR e.email_address LIKE ?) "
@@ -108,18 +103,6 @@ public class StudentDAO {
         if (status != -1) {
             sql.append("AND e.status = ? ");
             params.add(status);
-        }
-        if (className != null && !className.isEmpty()) {
-            sql.append("AND s.class_name LIKE ? ");
-            params.add("%" + className + "%");
-        }
-        if (department != null && !department.isEmpty()) {
-            sql.append("AND s.department LIKE ? ");
-            params.add("%" + department + "%");
-        }
-        if (major != null && !major.isEmpty()) {
-            sql.append("AND s.major LIKE ? ");
-            params.add("%" + major + "%");
         }
         if (cohort != null && !cohort.isEmpty()) {
             sql.append("AND s.cohort LIKE ? ");
@@ -141,13 +124,11 @@ public class StudentDAO {
                 acc.setEmailAddress(rs.getString("email_address"));
                 acc.setStudentId(rs.getString("student_id"));
                 acc.setStudentName(rs.getString("full_name"));
-                acc.setGender(rs.getString("gender"));
-                acc.setDateOfBirth(rs.getString("date_of_birth"));
-                acc.setClassName(rs.getString("class_name"));
-                acc.setDepartment(rs.getString("department"));
-                acc.setMajor(rs.getString("major"));
+                acc.setCccd(rs.getString("cccd"));
+                acc.setFirstName(rs.getString("first_name"));
+                acc.setLastName(rs.getString("last_name"));
                 acc.setCohort(rs.getString("cohort"));
-                acc.setPersonalEmail(rs.getString("personal_email"));
+                acc.setPhoneNumber(rs.getString("phone_number"));
                 acc.setStatus(rs.getInt("status"));
                 acc.setActivationDate(rs.getDate("activation_date"));
                 try {
@@ -163,11 +144,11 @@ public class StudentDAO {
         return accountList;
     }
 
-    public List<EmailAccount> exportAccountsAdvanced(List<Integer> statuses, String className, String department, String major, String cohort) {
+    public List<EmailAccount> exportAccountsAdvanced(List<Integer> statuses, String cohort) {
         List<EmailAccount> accountList = new ArrayList<>();
         
         StringBuilder sql = new StringBuilder(
-            "SELECT e.email_address, s.student_id, s.full_name, s.gender, s.date_of_birth, s.class_name, s.department, s.major, s.cohort, s.personal_email, e.status, e.activation_date, e.scheduled_delete_date " +
+            "SELECT e.email_address, s.student_id, s.full_name, s.cccd, s.first_name, s.last_name, s.cohort, s.phone_number, e.status, e.activation_date, e.scheduled_delete_date " +
             "FROM students s " +
             "JOIN email_accounts e ON s.student_id = e.student_id " +
             "WHERE 1=1 "
@@ -185,18 +166,6 @@ public class StudentDAO {
             sql.append(") ");
         }
 
-        if (className != null && !className.isEmpty()) {
-            sql.append("AND s.class_name LIKE ? ");
-            params.add("%" + className + "%");
-        }
-        if (department != null && !department.isEmpty()) {
-            sql.append("AND s.department LIKE ? ");
-            params.add("%" + department + "%");
-        }
-        if (major != null && !major.isEmpty()) {
-            sql.append("AND s.major LIKE ? ");
-            params.add("%" + major + "%");
-        }
         if (cohort != null && !cohort.isEmpty()) {
             sql.append("AND s.cohort LIKE ? ");
             params.add("%" + cohort + "%");
@@ -225,16 +194,11 @@ public class StudentDAO {
                 }
                 
                 acc.setStudentName(rs.getString("full_name"));
-                acc.setGender(rs.getString("gender"));
-                java.sql.Date dob = rs.getDate("date_of_birth");
-                if (dob != null) {
-                    acc.setDateOfBirth(dob.toString());
-                }
-                acc.setClassName(rs.getString("class_name"));
-                acc.setDepartment(rs.getString("department"));
-                acc.setMajor(rs.getString("major"));
+                acc.setCccd(rs.getString("cccd"));
+                acc.setFirstName(rs.getString("first_name"));
+                acc.setLastName(rs.getString("last_name"));
                 acc.setCohort(rs.getString("cohort"));
-                acc.setPersonalEmail(rs.getString("personal_email"));
+                acc.setPhoneNumber(rs.getString("phone_number"));
                 
                 accountList.add(acc);
             }
@@ -244,8 +208,9 @@ public class StudentDAO {
         
         return accountList;
     }
+
     public boolean updateStudentInfo(String studentId, Student student, String emailAddress, int status) {
-        String sqlStudent = "UPDATE students SET full_name = ?, gender = ?, date_of_birth = ?, class_name = ?, department = ?, major = ?, cohort = ?, personal_email = ? WHERE student_id = ?";
+        String sqlStudent = "UPDATE students SET full_name = ?, cccd = ?, first_name = ?, last_name = ?, cohort = ?, phone_number = ? WHERE student_id = ?";
         String sqlEmail = "UPDATE email_accounts SET email_address = ?, status = ? WHERE student_id = ?";
 
         try (Connection conn = DBConnection.getConnection()) {
@@ -255,14 +220,12 @@ public class StudentDAO {
                  PreparedStatement ps2 = conn.prepareStatement(sqlEmail)) {
 
                 ps1.setString(1, student.getFullName());
-                ps1.setString(2, student.getGender());
-                ps1.setString(3, student.getDateOfBirth());
-                ps1.setString(4, student.getClassName());
-                ps1.setString(5, student.getDepartment());
-                ps1.setString(6, student.getMajor());
-                ps1.setString(7, student.getCohort());
-                ps1.setString(8, student.getPersonalEmail());
-                ps1.setString(9, studentId);
+                ps1.setString(2, student.getCccd());
+                ps1.setString(3, student.getFirstName());
+                ps1.setString(4, student.getLastName());
+                ps1.setString(5, student.getCohort());
+                ps1.setString(6, student.getPhoneNumber());
+                ps1.setString(7, studentId);
                 ps1.executeUpdate();
 
                 ps2.setString(1, emailAddress);
@@ -284,7 +247,7 @@ public class StudentDAO {
     }
 
     public boolean createStudentWithEmail(Student student, EmailAccount emailAcc) {
-        String sqlStudent = "INSERT INTO students (student_id, full_name, gender, date_of_birth, class_name, department, major, cohort, personal_email, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())";
+        String sqlStudent = "INSERT INTO students (student_id, full_name, cccd, first_name, last_name, cohort, phone_number, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, NOW())";
         String sqlEmail = "INSERT INTO email_accounts (email_address, student_id, password_hash, status, activation_date) VALUES (?, ?, ?, ?, ?)";
 
         try (Connection conn = DBConnection.getConnection()) {
@@ -295,13 +258,11 @@ public class StudentDAO {
 
                 ps1.setString(1, student.getStudentId());
                 ps1.setString(2, student.getFullName());
-                ps1.setString(3, student.getGender());
-                ps1.setString(4, student.getDateOfBirth());
-                ps1.setString(5, student.getClassName());
-                ps1.setString(6, student.getDepartment());
-                ps1.setString(7, student.getMajor());
-                ps1.setString(8, student.getCohort());
-                ps1.setString(9, student.getPersonalEmail());
+                ps1.setString(3, student.getCccd());
+                ps1.setString(4, student.getFirstName());
+                ps1.setString(5, student.getLastName());
+                ps1.setString(6, student.getCohort());
+                ps1.setString(7, student.getPhoneNumber());
                 ps1.executeUpdate();
 
                 ps2.setString(1, emailAcc.getEmailAddress());
@@ -325,7 +286,7 @@ public class StudentDAO {
     }
 
     public boolean suspendAccount(String studentId, String decisionNumber) {
-        String sql = "UPDATE email_accounts SET status = 2, decision_number = ? WHERE student_id = ?";
+        String sql = "UPDATE email_accounts SET status = 2, decision_number = ?, activation_date = CURRENT_DATE() WHERE student_id = ?";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, decisionNumber);
@@ -349,11 +310,12 @@ public class StudentDAO {
         }
     }
 
-    public boolean markPendingDelete(String studentId) {
-        String sql = "UPDATE email_accounts SET status = 3, scheduled_delete_date = DATE_ADD(NOW(), INTERVAL 30 DAY) WHERE student_id = ?";
+    public boolean markPendingDelete(String studentId, String decisionNumber) {
+        String sql = "UPDATE email_accounts SET status = 3, scheduled_delete_date = DATE_ADD(NOW(), INTERVAL 30 DAY), decision_number = ?, activation_date = CURRENT_DATE() WHERE student_id = ?";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, studentId);
+            ps.setString(1, decisionNumber);
+            ps.setString(2, studentId);
             return ps.executeUpdate() > 0;
         } catch (Exception e) {
             e.printStackTrace();
@@ -398,6 +360,7 @@ public class StudentDAO {
                 return "Không thể kết nối đến database.";
             }
             conn.setAutoCommit(false);
+
             try (PreparedStatement psDisable = conn.prepareStatement(sqlDisableFk);
                  PreparedStatement ps1 = conn.prepareStatement(sqlEmail);
                  PreparedStatement ps2 = conn.prepareStatement(sqlStudent);
@@ -427,13 +390,11 @@ public class StudentDAO {
                     Student s = new Student();
                     s.setStudentId(rs.getString("student_id"));
                     s.setFullName(rs.getString("full_name"));
-                    s.setGender(rs.getString("gender"));
-                    s.setDateOfBirth(rs.getString("date_of_birth"));
-                    s.setClassName(rs.getString("class_name"));
-                    s.setDepartment(rs.getString("department"));
-                    s.setMajor(rs.getString("major"));
+                    s.setCccd(rs.getString("cccd"));
+                    s.setFirstName(rs.getString("first_name"));
+                    s.setLastName(rs.getString("last_name"));
                     s.setCohort(rs.getString("cohort"));
-                    s.setPersonalEmail(rs.getString("personal_email"));
+                    s.setPhoneNumber(rs.getString("phone_number"));
                     return s;
                 }
             }
@@ -503,7 +464,6 @@ public class StudentDAO {
         return null;
     }
 
-    // RESTORED METHODS
     public boolean activateAccount(String email, String newPassword, String phone) {
         String sql = "UPDATE email_accounts SET password_hash = ?, status = 1, activation_date = NOW() WHERE email_address = ?";
         try (Connection conn = DBConnection.getConnection();
@@ -565,7 +525,7 @@ public class StudentDAO {
     }
 
     public EmailAccount getAccountByEmail(String email) {
-        String sql = "SELECT e.*, s.full_name, s.personal_email FROM email_accounts e JOIN students s ON e.student_id = s.student_id WHERE e.email_address = ?";
+        String sql = "SELECT e.*, s.full_name, s.phone_number, s.personal_email FROM email_accounts e JOIN students s ON e.student_id = s.student_id WHERE e.email_address = ?";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, email);
@@ -575,6 +535,27 @@ public class StudentDAO {
                     acc.setEmailAddress(rs.getString("email_address"));
                     acc.setStudentId(rs.getString("student_id"));
                     acc.setStudentName(rs.getString("full_name"));
+                    acc.setPhoneNumber(rs.getString("phone_number"));
+                    acc.setStatus(rs.getInt("status"));
+                    return acc;
+                }
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+        return null;
+    }
+
+    public EmailAccount getAccountByStudentId(String studentId) {
+        String sql = "SELECT e.*, s.full_name, s.phone_number, s.personal_email FROM email_accounts e JOIN students s ON e.student_id = s.student_id WHERE e.student_id = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, studentId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    EmailAccount acc = new EmailAccount();
+                    acc.setEmailAddress(rs.getString("email_address"));
+                    acc.setStudentId(rs.getString("student_id"));
+                    acc.setStudentName(rs.getString("full_name"));
+                    acc.setPhoneNumber(rs.getString("phone_number"));
                     acc.setPersonalEmail(rs.getString("personal_email"));
                     acc.setStatus(rs.getInt("status"));
                     return acc;
@@ -599,7 +580,7 @@ public class StudentDAO {
 
     public List<EmailAccount> getSuspendedAccountsList() {
         List<EmailAccount> accountList = new ArrayList<>();
-        String sql = "SELECT e.email_address, e.student_id, s.full_name, s.gender, s.date_of_birth, s.class_name, s.department, s.major, s.cohort, s.personal_email, e.status, e.activation_date " +
+        String sql = "SELECT e.email_address, e.student_id, s.full_name, s.cccd, s.first_name, s.last_name, s.cohort, s.phone_number, e.status, e.activation_date " +
                      "FROM email_accounts e " +
                      "JOIN students s ON e.student_id = s.student_id " +
                      "WHERE e.status = 2 " +
@@ -614,13 +595,11 @@ public class StudentDAO {
                 acc.setEmailAddress(rs.getString("email_address"));
                 acc.setStudentId(rs.getString("student_id"));
                 acc.setStudentName(rs.getString("full_name"));
-                acc.setGender(rs.getString("gender"));
-                acc.setDateOfBirth(rs.getString("date_of_birth"));
-                acc.setClassName(rs.getString("class_name"));
-                acc.setDepartment(rs.getString("department"));
-                acc.setMajor(rs.getString("major"));
+                acc.setCccd(rs.getString("cccd"));
+                acc.setFirstName(rs.getString("first_name"));
+                acc.setLastName(rs.getString("last_name"));
                 acc.setCohort(rs.getString("cohort"));
-                acc.setPersonalEmail(rs.getString("personal_email"));
+                acc.setPhoneNumber(rs.getString("phone_number"));
                 acc.setStatus(rs.getInt("status"));
                 acc.setActivationDate(rs.getDate("activation_date"));
                 
@@ -633,7 +612,7 @@ public class StudentDAO {
     }
     public List<EmailAccount> getPendingRevokeAccountsList() {
         List<EmailAccount> accountList = new ArrayList<>();
-        String sql = "SELECT e.email_address, e.student_id, s.full_name, s.gender, s.date_of_birth, s.class_name, s.department, s.major, s.cohort, s.personal_email, e.status, e.activation_date, e.scheduled_delete_date " +
+        String sql = "SELECT e.email_address, e.student_id, s.full_name, s.cccd, s.first_name, s.last_name, s.cohort, s.phone_number, e.status, e.activation_date, e.scheduled_delete_date " +
                      "FROM email_accounts e " +
                      "JOIN students s ON e.student_id = s.student_id " +
                      "WHERE e.status = 3 " +
@@ -648,13 +627,11 @@ public class StudentDAO {
                 acc.setEmailAddress(rs.getString("email_address"));
                 acc.setStudentId(rs.getString("student_id"));
                 acc.setStudentName(rs.getString("full_name"));
-                acc.setGender(rs.getString("gender"));
-                acc.setDateOfBirth(rs.getString("date_of_birth"));
-                acc.setClassName(rs.getString("class_name"));
-                acc.setDepartment(rs.getString("department"));
-                acc.setMajor(rs.getString("major"));
+                acc.setCccd(rs.getString("cccd"));
+                acc.setFirstName(rs.getString("first_name"));
+                acc.setLastName(rs.getString("last_name"));
                 acc.setCohort(rs.getString("cohort"));
-                acc.setPersonalEmail(rs.getString("personal_email"));
+                acc.setPhoneNumber(rs.getString("phone_number"));
                 acc.setStatus(rs.getInt("status"));
                 acc.setActivationDate(rs.getDate("activation_date"));
                 

@@ -4,7 +4,12 @@ import org.apache.poi.ss.usermodel.*;
 import vn.edu.hmu.dao.AdminDAO;
 import vn.edu.hmu.dao.StudentDAO;
 import vn.edu.hmu.model.ActionLog;
+import vn.edu.hmu.model.EmailAccount;
+import vn.edu.hmu.model.ITAdmin;
 import vn.edu.hmu.util.DBConnection;
+import vn.edu.hmu.util.EmailService;
+import vn.edu.hmu.util.FileStorageUtil;
+import vn.edu.hmu.dao.ArchiveDAO;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.MultipartConfig;
@@ -29,29 +34,59 @@ public class BatchRevokeServlet extends HttpServlet {
 
     private StudentDAO studentDAO = new StudentDAO();
     private AdminDAO adminDAO = new AdminDAO();
+    private ArchiveDAO archiveDAO = new ArchiveDAO();
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, java.io.IOException {
         request.setCharacterEncoding("UTF-8");
         response.setCharacterEncoding("UTF-8");
 
+        ITAdmin admin = (ITAdmin) request.getSession().getAttribute("currentAdmin");
+        if (admin == null) {
+            response.sendRedirect("login.jsp");
+            return;
+        }
+
+        String decisionNumber = request.getParameter("decisionNumber");
+        if (decisionNumber == null || !decisionNumber.matches(".*\\/QĐ-ĐHYHN.*")) {
+            request.getSession().setAttribute("errorMsg", "Số quyết định không hợp lệ. Phải chứa chuỗi '/QĐ-ĐHYHN'.");
+            response.sendRedirect("dashboard#page-archive");
+            return;
+        }
+
         Part filePart = request.getPart("excelFile");
         if (filePart == null || filePart.getSize() == 0) {
             request.getSession().setAttribute("errorMsg", "Vui lòng chọn file Excel để thu hồi!");
-            response.sendRedirect(request.getContextPath() + "/dashboard");
+            response.sendRedirect(request.getContextPath() + "/dashboard#page-archive");
             return;
         }
+
+        String appPath = request.getServletContext().getRealPath("");
+        String savedPath = FileStorageUtil.saveUploadedFile(filePart, "M02_THUHOI", admin.getAdminID());
+        if (savedPath == null) {
+            request.getSession().setAttribute("errorMsg", "Lỗi lưu file hệ thống.");
+            response.sendRedirect("dashboard#page-archive");
+            return;
+        }
+
+        int adminIdInt = 0;
+        try {
+            adminIdInt = Integer.parseInt(admin.getAdminID());
+        } catch(Exception ignored) {}
+
+        archiveDAO.insertArchiveM02("THU_HOI", decisionNumber, filePart.getSubmittedFileName(), savedPath, adminIdInt);
 
         int successCount = 0;
         int errorCount = 0;
         List<String> errorDetails = new ArrayList<>();
+        List<String> revokedEmails = new ArrayList<>();
 
         try (InputStream fileContent = filePart.getInputStream();
              Workbook workbook = WorkbookFactory.create(fileContent);
              Connection conn = DBConnection.getConnection()) {
 
             Sheet sheet = workbook.getSheetAt(0);
-            String updateSql = "UPDATE email_accounts SET status = 3, scheduled_delete_date = DATE_ADD(NOW(), INTERVAL 30 DAY) WHERE email_address = ? OR student_id = ?";
+            String updateSql = "UPDATE email_accounts SET status = 3, scheduled_delete_date = DATE_ADD(NOW(), INTERVAL 30 DAY), decision_number = ? WHERE email_address = ? OR student_id = ?";
 
             try (PreparedStatement ps = conn.prepareStatement(updateSql)) {
                 // Bỏ qua dòng tiêu đề (i = 1)
@@ -60,43 +95,75 @@ public class BatchRevokeServlet extends HttpServlet {
                     if (row == null) continue;
 
                     String fullName = getSafeString(row.getCell(1));
-                    String col2 = getSafeString(row.getCell(2));
-                    String col3 = getSafeString(row.getCell(3));
-                    String col4 = getSafeString(row.getCell(4));
-
-                    if (fullName.isEmpty() && col2.isEmpty() && col3.isEmpty() && col4.isEmpty()) {
-                        continue;
-                    }
+                    String col2 = getSafeString(row.getCell(2)); // Email
+                    String col3 = getSafeString(row.getCell(3)); // Mã SV
 
                     String email = "";
                     String studentId = "";
 
-                    String[] cols = {col2, col3, col4};
-                    for (String c : cols) {
-                        if (c.contains("@")) {
-                            email = c;
-                        } else if (c.matches("\\d{8}") || c.matches("HV\\d+")) {
-                            studentId = c;
-                        }
+                    if (col2.contains("@")) {
+                        email = col2;
+                    } else if (col3.contains("@")) {
+                        email = col3;
+                    }
+
+                    if (col3.matches("\\d{8}") || col3.matches("HV\\d+")) {
+                        studentId = col3;
+                    } else if (col2.matches("\\d{8}") || col2.matches("HV\\d+")) {
+                        studentId = col2;
                     }
 
                     if (email.isEmpty() && studentId.isEmpty()) {
-                        errorCount++;
-                        errorDetails.add("Dòng " + (i + 1) + ": Không tìm thấy Email hoặc Mã SV hợp lệ.");
                         continue;
                     }
 
-                    ps.setString(1, email);
-                    ps.setString(2, studentId);
+                    EmailAccount acc = null;
+                    if (!email.isEmpty()) {
+                        acc = studentDAO.getAccountByEmail(email);
+                    }
+
+                    ps.setString(1, decisionNumber);
+                    ps.setString(2, email);
+                    ps.setString(3, studentId);
                     int affectedRows = ps.executeUpdate();
 
                     if (affectedRows > 0) {
                         successCount++;
-                        ActionLog log = new ActionLog();
-                        log.setActionType("REVOKE_BATCH");
-                        log.setTargetEmail(email.isEmpty() ? studentId : email);
-                        log.setReason("Thu hồi hàng loạt từ Excel. Hẹn xóa sau 30 ngày.");
-                        adminDAO.insertActionLog(log);
+                        
+                        // Gửi email thu hồi ngầm (Background Thread)
+                        if (acc != null) {
+                            final String targetEmail = acc.getPersonalEmail() != null ? acc.getPersonalEmail() : acc.getEmailAddress();
+                            final String studentName = acc.getStudentName();
+                            final int threadDelay = successCount * 500; // Delay tăng dần
+                            
+                            new Thread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    try {
+                                        Thread.sleep(threadDelay);
+                                        String mailContent = EmailService.sendRevokeWarningEmail(targetEmail, studentName);
+                                        if (mailContent != null) {
+                                            vn.edu.hmu.dao.ArchiveDAO aDao = new vn.edu.hmu.dao.ArchiveDAO();
+                                            aDao.insertArchivePL01(targetEmail, studentName, "CẢNH BÁO: Thu hồi tài khoản Email Sinh viên", mailContent);
+                                        }
+                                    } catch (Exception e) {
+                                        e.printStackTrace();
+                                    }
+                                }
+                            }).start();
+                        }
+                        
+                        ActionLog detailLog = new ActionLog();
+                        detailLog.setActionType("DELETE");
+                        detailLog.setTargetEmail(acc != null ? acc.getEmailAddress() : email);
+                        detailLog.setReason("Thu hồi tài khoản qua Excel. QĐ: " + decisionNumber);
+                        detailLog.setDetails("Chờ xóa sau 30 ngày");
+                        try {
+                            detailLog.setAdminId(Integer.parseInt(admin.getAdminID()));
+                        } catch(Exception ignored) {}
+                        adminDAO.insertActionLog(detailLog);
+
+                        revokedEmails.add(email.isEmpty() ? studentId : email);
                     } else {
                         errorCount++;
                         errorDetails.add("Dòng " + (i + 1) + ": Không tìm thấy tài khoản " + (email.isEmpty() ? studentId : email) + " trên hệ thống.");
@@ -104,16 +171,27 @@ public class BatchRevokeServlet extends HttpServlet {
                 }
             }
             
-            // Ghi nhận tổng quan
             ActionLog summaryLog = new ActionLog();
-            summaryLog.setActionType("BATCH_RESULT");
-            summaryLog.setTargetEmail("SYSTEM");
-            summaryLog.setReason("Kết quả thu hồi Excel: " + successCount + " thành công, " + errorCount + " lỗi. Email thông báo đã được gửi giả lập.");
+            summaryLog.setActionType("BATCH_REVOKE");
+            summaryLog.setTargetEmail(null);
+            summaryLog.setReason("Kết quả thu hồi Excel. QĐ: " + decisionNumber + " - Thành công: " + successCount + ", Lỗi: " + errorCount);
+            
+            StringBuilder detailsBuilder = new StringBuilder("[");
+            for (int i = 0; i < revokedEmails.size(); i++) {
+                detailsBuilder.append("\"").append(revokedEmails.get(i)).append("\"");
+                if (i < revokedEmails.size() - 1) detailsBuilder.append(",");
+            }
+            detailsBuilder.append("]");
+            summaryLog.setDetails(detailsBuilder.toString());
+            
+            try {
+                summaryLog.setAdminId(Integer.parseInt(admin.getAdminID()));
+            } catch(Exception ignored) {}
             adminDAO.insertActionLog(summaryLog);
 
             StringBuilder finalMsg = new StringBuilder();
             if (successCount > 0) {
-                finalMsg.append("Đã đưa ").append(successCount).append(" tài khoản vào danh sách chờ xóa sau 30 ngày! Hệ thống đã mô phỏng việc gửi email thông báo tới sinh viên.");
+                finalMsg.append("Đã đưa ").append(successCount).append(" tài khoản vào danh sách chờ xóa sau 30 ngày! Hệ thống đã gửi email cảnh báo tự động.");
             }
             if (errorCount > 0) {
                 if (successCount > 0) finalMsg.append("<br>");
@@ -134,7 +212,7 @@ public class BatchRevokeServlet extends HttpServlet {
             request.getSession().setAttribute("errorMsg", "Lỗi xử lý file Excel: " + e.getMessage());
         }
 
-        response.sendRedirect(request.getContextPath() + "/dashboard");
+        response.sendRedirect(request.getContextPath() + "/dashboard#page-archive");
     }
 
     private String getSafeString(Cell cell) {

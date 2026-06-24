@@ -8,6 +8,8 @@ import vn.edu.hmu.model.ActionLog;
 import vn.edu.hmu.model.EmailAccount;
 import vn.edu.hmu.model.ITAdmin;
 import vn.edu.hmu.util.EmailService;
+import vn.edu.hmu.util.FileStorageUtil;
+import vn.edu.hmu.dao.ArchiveDAO;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.MultipartConfig;
@@ -34,86 +36,96 @@ public class BatchSuspendServlet extends HttpServlet {
             return;
         }
 
+        String decisionNumber = request.getParameter("decisionNumber");
+        if (decisionNumber == null || !decisionNumber.matches(".*\\/QĐ-ĐHYHN.*")) {
+            request.getSession().setAttribute("errorMsg", "Số quyết định không hợp lệ. Phải chứa chuỗi '/QĐ-ĐHYHN'.");
+            response.sendRedirect("dashboard#page-archive");
+            return;
+        }
+
         Part filePart = request.getPart("excelFile"); 
         if (filePart == null || filePart.getSize() == 0) {
             request.getSession().setAttribute("errorMsg", "Vui lòng chọn file Excel.");
-            response.sendRedirect("dashboard");
+            response.sendRedirect("dashboard#page-archive");
             return;
         }
+
+        String savedPath = FileStorageUtil.saveUploadedFile(filePart, "M02_BAOLUU", admin.getAdminID());
+        if (savedPath == null) {
+            request.getSession().setAttribute("errorMsg", "Lỗi lưu file hệ thống.");
+            response.sendRedirect("dashboard#page-archive");
+            return;
+        }
+        
+        int adminIdInt = 0;
+        try {
+            adminIdInt = Integer.parseInt(admin.getAdminID());
+        } catch (Exception e) {}
+
+        // Lưu vào kho archive_m02
+        ArchiveDAO archiveDAO = new ArchiveDAO();
+        archiveDAO.insertArchiveM02("BAO_LUU", decisionNumber, filePart.getSubmittedFileName(), savedPath, adminIdInt);
 
         InputStream fileContent = filePart.getInputStream();
         StudentDAO studentDAO = new StudentDAO();
         AdminDAO adminDAO = new AdminDAO();
         
-        int adminIdInt = 0;
-        try {
-            adminIdInt = Integer.parseInt(admin.getAdminID());
-        } catch (Exception e) {
-            System.out.println("Không thể chuyển đổi adminID sang int: " + admin.getAdminID());
-        }
-        
         int successCount = 0;
         List<String> errorMessages = new ArrayList<>();
+        List<String> suspendedEmails = new ArrayList<>();
 
-        try (Workbook workbook = new XSSFWorkbook(fileContent)) {
+        try (Workbook workbook = WorkbookFactory.create(fileContent)) {
             Sheet sheet = workbook.getSheetAt(0); 
 
-            // Bỏ qua dòng tiêu đề (index 0)
+            // Bỏ qua dòng tiêu đề
             for (int i = 1; i <= sheet.getLastRowNum(); i++) {
                 Row row = sheet.getRow(i);
                 if (row == null) continue;
 
                 try {
-                    // Cấu trúc file: 0: STT, 1: Họ tên, 2: Niên khóa, 3: Mã SV, 4: Email (nhưng ta sẽ tìm tự động)
-                    String fullName = getSafeString(row.getCell(1));
-                    String col2 = getSafeString(row.getCell(2));
-                    String col3 = getSafeString(row.getCell(3));
-                    String col4 = getSafeString(row.getCell(4));
-                    
-                    String email = "";
-                    String studentId = "";
-                    
-                    // Tìm email và mã SV trong các cột 2, 3, 4
-                    if (col2.contains("@")) email = col2;
-                    else if (col3.contains("@")) email = col3;
-                    else if (col4.contains("@")) email = col4;
-                    
-                    if (!col2.contains("@") && col2.matches(".*\\d.*") && !col2.contains("-")) studentId = col2;
-                    else if (!col3.contains("@") && col3.matches(".*\\d.*") && !col3.contains("-")) studentId = col3;
-                    else if (!col4.contains("@") && col4.matches(".*\\d.*") && !col4.contains("-")) studentId = col4;
+                    // Cột M.02: 1(Họ tên), 2(Email), 3(Mã SV), 4(Niên khóa).
+                    String email = getSafeString(row.getCell(2));
+                    String studentId = getSafeString(row.getCell(3));
 
-                    if (email.isEmpty() || studentId.isEmpty()) {
-                        errorMessages.add("Dòng " + (i+1) + ": Bị bỏ qua do thiếu Email hoặc Mã SV. (Email: '" + email + "', Mã SV: '" + studentId + "')");
+                    if (email.isEmpty() && studentId.isEmpty()) {
                         continue; 
                     }
 
-                    // 1. Kiểm tra tài khoản có tồn tại không
-                    EmailAccount acc = studentDAO.getAccountByEmail(email);
+                    EmailAccount acc = null;
+                    if (!email.isEmpty()) {
+                        acc = studentDAO.getAccountByEmail(email);
+                    }
+                    if (acc == null && !studentId.isEmpty()) {
+                        // Nếu cần có thể tìm theo mã sinh viên, tạm thời thông qua email
+                    }
+
                     if (acc == null) {
                         errorMessages.add("Dòng " + (i+1) + ": Email " + email + " không tồn tại trong hệ thống.");
                         continue;
                     }
                     
-                    // 2. Đồng bộ với Cloud (Mô phỏng)
                     try {
                         EmailService.syncSuspendWithCloud(email);
                         
-                        // 3. Nếu Cloud thành công, cập nhật Database bằng mã SV chuẩn từ hệ thống
-                        boolean suspended = studentDAO.suspendAccount(acc.getStudentId(), "Quy chế bảo lưu (Từ file Excel)");
+                        boolean suspended = studentDAO.suspendAccount(acc.getStudentId(), decisionNumber);
                         if (suspended) {
                             successCount++;
-                            // 4. Ghi Log
-                            ActionLog log = new ActionLog(adminIdInt, email, "SUSPEND_BATCH", "Bảo lưu hàng loạt từ Excel");
-                            adminDAO.insertActionLog(log);
+                            suspendedEmails.add(email);
+                            
+                            ActionLog detailLog = new ActionLog();
+                            detailLog.setActionType("SUSPEND_ACCOUNT");
+                            detailLog.setTargetEmail(email);
+                            detailLog.setReason("Bảo lưu tài khoản qua Excel M.02. QĐ: " + decisionNumber);
+                            detailLog.setDetails("Bảo lưu thành công");
+                            detailLog.setAdminId(adminIdInt);
+                            adminDAO.insertActionLog(detailLog);
                         } else {
                             errorMessages.add("Dòng " + (i+1) + ": Lỗi cập nhật Database cho email " + email);
                         }
                         
                     } catch (Exception ex) {
-                        // Nếu Cloud lỗi (vd API Timeout), bắt ngoại lệ và không cập nhật DB nội bộ
                         errorMessages.add("Dòng " + (i+1) + ": Đồng bộ Cloud thất bại cho " + email + " - Lỗi: " + ex.getMessage());
-                        // Ghi log lỗi để admin dễ theo dõi
-                        ActionLog errorLog = new ActionLog(adminIdInt, email, "SUSPEND_ERROR", "Lỗi đồng bộ Cloud: " + ex.getMessage());
+                        ActionLog errorLog = new ActionLog(adminIdInt, email, "SUSPEND_ERROR", "Lỗi đồng bộ Cloud: " + ex.getMessage(), null);
                         adminDAO.insertActionLog(errorLog);
                     }
 
@@ -122,13 +134,29 @@ public class BatchSuspendServlet extends HttpServlet {
                 }
             }
 
-            // Lưu kết quả vào Session và Ghi log tổng hợp
+            if (successCount > 0) {
+                ActionLog summaryLog = new ActionLog();
+                summaryLog.setActionType("BATCH_SUSPEND");
+                summaryLog.setTargetEmail(null);
+                summaryLog.setReason("Bảo lưu hàng loạt. QĐ: " + decisionNumber + " - Thành công: " + successCount);
+                summaryLog.setAdminId(adminIdInt);
+
+                StringBuilder detailsBuilder = new StringBuilder("[");
+                for (int i = 0; i < suspendedEmails.size(); i++) {
+                    detailsBuilder.append("\"").append(suspendedEmails.get(i)).append("\"");
+                    if (i < suspendedEmails.size() - 1) detailsBuilder.append(",");
+                }
+                detailsBuilder.append("]");
+                summaryLog.setDetails(detailsBuilder.toString());
+                adminDAO.insertActionLog(summaryLog);
+            }
+
             StringBuilder finalMsg = new StringBuilder();
             if (successCount > 0) {
                 finalMsg.append("✅ Đã bảo lưu thành công ").append(successCount).append(" tài khoản.<br>");
             }
             if (!errorMessages.isEmpty()) {
-                finalMsg.append("❌ Có ").append(errorMessages.size()).append(" lỗi xảy ra (Vui lòng tự khóa thủ công):<br>");
+                finalMsg.append("❌ Có ").append(errorMessages.size()).append(" lỗi xảy ra:<br>");
                 int count = 0;
                 for (String err : errorMessages) {
                     if (count >= 5) {
@@ -140,21 +168,12 @@ public class BatchSuspendServlet extends HttpServlet {
                 }
                 
                 if (successCount > 0) {
-                    // Nếu có ít nhất 1 thành công thì báo viền xanh (Success) kèm theo danh sách lỗi bên trong
                     request.getSession().setAttribute("successMsg", finalMsg.toString());
                 } else {
-                    // Nếu hoàn toàn thất bại (0 thành công) thì báo viền đỏ (Error)
                     request.getSession().setAttribute("errorMsg", finalMsg.toString());
                 }
             } else if (successCount > 0) {
                 request.getSession().setAttribute("successMsg", finalMsg.toString());
-            }
-
-            // Ghi 1 dòng log tổng quát về quá trình này
-            if (successCount > 0 || !errorMessages.isEmpty()) {
-                String summaryStr = "Xử lý hàng loạt: " + successCount + " thành công, " + errorMessages.size() + " lỗi.";
-                ActionLog summaryLog = new ActionLog(adminIdInt, "Hệ thống (Batch)", "BATCH_RESULT", summaryStr);
-                adminDAO.insertActionLog(summaryLog);
             }
 
             response.sendRedirect("dashboard#page-archive");
@@ -162,7 +181,7 @@ public class BatchSuspendServlet extends HttpServlet {
         } catch (Exception e) {
             e.printStackTrace();
             request.getSession().setAttribute("errorMsg", "Lỗi đọc file Excel: " + e.getMessage());
-            response.sendRedirect("dashboard");
+            response.sendRedirect("dashboard#page-archive");
         }
     }
 

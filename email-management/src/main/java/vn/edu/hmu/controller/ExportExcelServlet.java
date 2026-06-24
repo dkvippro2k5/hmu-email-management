@@ -37,12 +37,9 @@ public class ExportExcelServlet extends HttpServlet {
             }
         }
         
-        String department = request.getParameter("department");
-        String major = request.getParameter("major");
-        String studentClass = request.getParameter("studentClass");
         String cohort = request.getParameter("cohort");
 
-        List<EmailAccount> accounts = studentDAO.exportAccountsAdvanced(statuses, studentClass, department, major, cohort);
+        List<EmailAccount> accounts = studentDAO.exportAccountsAdvanced(statuses, cohort);
 
         response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
         response.setHeader("Content-Disposition", "attachment; filename=\"Danh_sach_tai_khoan.xlsx\"");
@@ -52,7 +49,7 @@ public class ExportExcelServlet extends HttpServlet {
             
             // Header
             Row headerRow = sheet.createRow(0);
-            String[] headers = {"STT", "Họ và tên", "Mã SV", "Giới tính", "Ngày sinh", "Lớp", "Khoa", "Ngành học", "Khóa", "Email cá nhân", "Email được cấp", "Trạng thái"};
+            String[] headers = {"STT", "Họ và tên", "Mã SV", "Khóa", "Số điện thoại", "Email cá nhân", "Email được cấp", "Trạng thái"};
             
             CellStyle headerStyle = workbook.createCellStyle();
             Font headerFont = workbook.createFont();
@@ -65,7 +62,6 @@ public class ExportExcelServlet extends HttpServlet {
                 cell.setCellStyle(headerStyle);
             }
 
-            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
             int rowIdx = 1;
             for (EmailAccount acc : accounts) {
                 Row row = sheet.createRow(rowIdx++);
@@ -73,14 +69,10 @@ public class ExportExcelServlet extends HttpServlet {
                 row.createCell(0).setCellValue(rowIdx - 1);
                 row.createCell(1).setCellValue(acc.getStudentName() != null ? acc.getStudentName() : "");
                 row.createCell(2).setCellValue(acc.getStudentId() != null ? acc.getStudentId() : "");
-                row.createCell(3).setCellValue(acc.getGender() != null ? acc.getGender() : "");
-                row.createCell(4).setCellValue(acc.getDateOfBirth() != null ? acc.getDateOfBirth() : "");
-                row.createCell(5).setCellValue(acc.getClassName() != null ? acc.getClassName() : "");
-                row.createCell(6).setCellValue(acc.getDepartment() != null ? acc.getDepartment() : "");
-                row.createCell(7).setCellValue(acc.getMajor() != null ? acc.getMajor() : "");
-                row.createCell(8).setCellValue(acc.getCohort() != null ? acc.getCohort() : "");
-                row.createCell(9).setCellValue(acc.getPersonalEmail() != null ? acc.getPersonalEmail() : "");
-                row.createCell(10).setCellValue(acc.getEmailAddress() != null ? acc.getEmailAddress() : "");
+                row.createCell(3).setCellValue(acc.getCohort() != null ? acc.getCohort() : "");
+                row.createCell(4).setCellValue(acc.getPhoneNumber() != null ? acc.getPhoneNumber() : "");
+                row.createCell(5).setCellValue(acc.getPersonalEmail() != null ? acc.getPersonalEmail() : "");
+                row.createCell(6).setCellValue(acc.getEmailAddress() != null ? acc.getEmailAddress() : "");
                 
                 String statusText = "Không xác định";
                 switch (acc.getStatus()) {

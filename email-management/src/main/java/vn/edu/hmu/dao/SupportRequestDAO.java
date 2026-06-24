@@ -27,7 +27,7 @@ public class SupportRequestDAO {
 
     public List<SupportRequest> getAllRequests() {
         List<SupportRequest> list = new ArrayList<>();
-        String sql = "SELECT r.*, s.full_name FROM support_requests r JOIN students s ON r.student_id = s.student_id ORDER BY r.created_at DESC";
+        String sql = "SELECT r.*, s.full_name FROM support_requests r LEFT JOIN students s ON r.student_id = s.student_id ORDER BY r.created_at DESC";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {

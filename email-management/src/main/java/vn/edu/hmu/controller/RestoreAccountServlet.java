@@ -32,6 +32,30 @@ public class RestoreAccountServlet extends HttpServlet {
         boolean success = dao.restoreAccount(studentId);
 
         if (success) {
+            try {
+                vn.edu.hmu.model.EmailAccount acc = dao.getAccountByStudentId(studentId);
+                if (acc != null) {
+                    vn.edu.hmu.dao.ArchiveDAO archiveDAO = new vn.edu.hmu.dao.ArchiveDAO();
+                    String toEmail = acc.getPersonalEmail() != null ? acc.getPersonalEmail() : acc.getEmailAddress();
+                    String mailContent = "Tài khoản email của bạn đã được khôi phục thành công. Bạn có thể đăng nhập bình thường.";
+                    archiveDAO.insertArchivePL01(toEmail, acc.getStudentName(), "THÔNG BÁO: Khôi phục tài khoản", mailContent);
+                }
+
+                vn.edu.hmu.model.ITAdmin admin = (vn.edu.hmu.model.ITAdmin) request.getSession().getAttribute("currentAdmin");
+                if (admin != null) {
+                    vn.edu.hmu.dao.AdminDAO adminDAO = new vn.edu.hmu.dao.AdminDAO();
+                    vn.edu.hmu.model.ActionLog log = new vn.edu.hmu.model.ActionLog();
+                    int safeAdminId = 1;
+                    try { if (admin.getAdminID() != null) safeAdminId = Integer.parseInt(admin.getAdminID()); } catch(Exception e) {}
+                    log.setAdminId(safeAdminId);
+                    log.setTargetEmail(acc != null ? acc.getEmailAddress() : studentId);
+                    log.setActionType("RESTORE");
+                    log.setReason("Khôi phục tài khoản thủ công");
+                    log.setDetails("Khôi phục thành công. Mã SV: " + studentId);
+                    adminDAO.insertActionLog(log);
+                }
+            } catch(Exception ignored) {}
+
             out.print("{\"success\": true, \"message\": \"Khôi phục tài khoản thành công.\"}");
         } else {
             out.print("{\"success\": false, \"message\": \"Không thể khôi phục tài khoản.\"}");

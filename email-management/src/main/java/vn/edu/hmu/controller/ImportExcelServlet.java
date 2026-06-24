@@ -1,198 +1,179 @@
 package vn.edu.hmu.controller;
 
 import org.apache.poi.ss.usermodel.*;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import vn.edu.hmu.dao.AdminDAO;
 import vn.edu.hmu.dao.StudentDAO;
+import vn.edu.hmu.model.ActionLog;
 import vn.edu.hmu.model.EmailAccount;
+import vn.edu.hmu.model.ITAdmin;
 import vn.edu.hmu.model.Student;
+import vn.edu.hmu.dao.ArchiveDAO;
 import vn.edu.hmu.util.AccountGenerator;
+import vn.edu.hmu.util.FileStorageUtil;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.MultipartConfig;
 import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.*;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.Part;
 import java.io.InputStream;
-import java.sql.Date;
-import java.util.Calendar;
+import java.util.ArrayList;
+import java.util.List;
 
-@WebServlet("/import-students") // Giữ nguyên link cũ của bạn
-@MultipartConfig // Bắt buộc phải có để nhận file Upload
+@WebServlet("/import-excel")
+@MultipartConfig
 public class ImportExcelServlet extends HttpServlet {
 
+    private StudentDAO studentDAO = new StudentDAO();
+    private AdminDAO adminDAO = new AdminDAO();
+    private ArchiveDAO archiveDAO = new ArchiveDAO();
+
     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) 
-            throws ServletException, java.io.IOException {
-        
-        Part filePart = request.getPart("excelFile"); 
-        InputStream fileContent = filePart.getInputStream();
-        StudentDAO studentDAO = new StudentDAO();
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, java.io.IOException {
+        request.setCharacterEncoding("UTF-8");
+        response.setCharacterEncoding("UTF-8");
+
+        ITAdmin admin = (ITAdmin) request.getSession().getAttribute("currentAdmin");
+        if (admin == null) {
+            response.sendRedirect("login.jsp");
+            return;
+        }
+
+        Part filePart = request.getPart("excelFile");
+        if (filePart == null || filePart.getSize() == 0) {
+            request.getSession().setAttribute("errorMsg", "Vui lòng chọn file Excel M.01!");
+            response.sendRedirect("dashboard");
+            return;
+        }
+
+        String appPath = request.getServletContext().getRealPath("");
+        String savedPath = FileStorageUtil.saveUploadedFile(filePart, "M01_KHOITAO", admin.getAdminID());
+        if (savedPath == null) {
+            request.getSession().setAttribute("errorMsg", "Lỗi lưu file hệ thống.");
+            response.sendRedirect("dashboard");
+            return;
+        }
+
+        // Lưu vào kho archive_m01
+        try {
+            archiveDAO.insertArchiveM01(filePart.getSubmittedFileName(), savedPath, Integer.parseInt(admin.getAdminID()));
+        } catch (Exception ignored) {}
+
         int successCount = 0;
+        int errorCount = 0;
+        List<String> errorDetails = new ArrayList<>();
+        List<String> createdStudents = new ArrayList<>();
 
-        try (Workbook workbook = new XSSFWorkbook(fileContent)) {
-            Sheet sheet = workbook.getSheetAt(0); 
+        try (InputStream fileContent = filePart.getInputStream();
+             Workbook workbook = WorkbookFactory.create(fileContent)) {
 
-            for (int i = 1; i <= sheet.getLastRowNum(); i++) {
+            Sheet sheet = workbook.getSheetAt(0);
+
+            // Bỏ qua dòng tiêu đề (thường dòng 1 và 2 là tiêu đề)
+            for (int i = 2; i <= sheet.getLastRowNum(); i++) {
                 Row row = sheet.getRow(i);
                 if (row == null) continue;
 
                 try {
-                    // Cấu trúc file Excel mới (10 cột):
-                    // 0: STT, 1: Mã SV, 2: Họ tên, 3: Giới tính, 4: Ngày sinh, 
-                    // 5: Tên lớp, 6: Khoa, 7: Ngành học, 8: Niên khóa, 9: Email cá nhân
-                    String studentId = getSafeString(row.getCell(1));
-                    String fullName = getSafeString(row.getCell(2));
-                    String gender = getSafeString(row.getCell(3));
-                    String dateOfBirth = normalizeDate(getSafeString(row.getCell(4)));
-                    String className = getSafeString(row.getCell(5));
-                    String department = getSafeString(row.getCell(6));
-                    String major = getSafeString(row.getCell(7));
+                    // Đọc đúng vị trí cột M.01: 
+                    // 1: Họ tên đầy đủ, 2: CCCD, 5: Tên, 6: Họ đệm, 7: Mã sinh viên, 8: Niên khóa, 9: SĐT
+                    String fullName = getSafeString(row.getCell(1));
+                    String cccd = getSafeString(row.getCell(2));
+                    String firstName = getSafeString(row.getCell(5));
+                    String lastName = getSafeString(row.getCell(6));
+                    String studentId = getSafeString(row.getCell(7));
                     String cohort = getSafeString(row.getCell(8));
-                    String personalEmail = getSafeString(row.getCell(9));
+                    String phone = getSafeString(row.getCell(9));
 
-                    if (studentId.isEmpty() || fullName.isEmpty()) {
-                        continue; 
+                    if (fullName.isEmpty() || studentId.isEmpty() || firstName.isEmpty()) {
+                        continue;
                     }
 
-                    String lengthError = validateImportRow(studentId, fullName, gender, dateOfBirth, className, department, major, cohort, personalEmail);
-                    if (lengthError != null) {
-                        request.getSession().setAttribute("errorMsg", "Lỗi import tại dòng " + (i + 1) + ": " + lengthError);
-                        response.sendRedirect("dashboard");
-                        return;
+                    // Tự động sinh Email và Mật khẩu
+                    String emailAddress = AccountGenerator.generateEmail(firstName, lastName, studentId);
+                    String rawPassword = AccountGenerator.generateDefaultPassword();
+                    String passwordHash = org.mindrot.jbcrypt.BCrypt.hashpw(rawPassword, org.mindrot.jbcrypt.BCrypt.gensalt());
+
+                    Student student = new Student(studentId, fullName, cccd, firstName, lastName, cohort, phone);
+                    EmailAccount emailAcc = new EmailAccount();
+                    emailAcc.setEmailAddress(emailAddress);
+                    emailAcc.setStudentId(studentId);
+                    emailAcc.setPasswordHash(passwordHash);
+                    emailAcc.setStatus(0); // 0: Chờ kích hoạt
+
+                    boolean success = studentDAO.createStudentWithEmail(student, emailAcc);
+                    if (success) {
+                        successCount++;
+                        createdStudents.add(studentId);
+                        
+                        ActionLog detailLog = new ActionLog();
+                        detailLog.setActionType("CREATE_ACCOUNT");
+                        detailLog.setTargetEmail(emailAddress);
+                        detailLog.setReason("Tạo tài khoản qua Import Excel M.01");
+                        detailLog.setDetails("Tạo mới tài khoản cho sinh viên: " + fullName + " - MSSV: " + studentId);
+                        try {
+                            detailLog.setAdminId(Integer.parseInt(admin.getAdminID()));
+                        } catch(Exception ignored) {}
+                        adminDAO.insertActionLog(detailLog);
+                    } else {
+                        errorCount++;
+                        errorDetails.add("Dòng " + (i + 1) + ": Không thể lưu vào DB (Mã SV " + studentId + " có thể đã tồn tại).");
                     }
-
-                    Student student = new Student(studentId, fullName, gender, dateOfBirth, className, department, major, cohort, personalEmail);
-
-                    String newEmail = AccountGenerator.generateEmail(fullName, studentId);
-                    String newPassword = AccountGenerator.generateDefaultPassword();
-
-                    Calendar cal = Calendar.getInstance();
-                    cal.add(Calendar.DATE, 1);
-                    Date activationDate = new Date(cal.getTimeInMillis());
-
-                    EmailAccount emailAcc = new EmailAccount(newEmail, studentId, newPassword, 0, activationDate, null);
-
-                    String importError = studentDAO.importStudentAndEmail(student, emailAcc);
-                    if (importError != null) {
-                        request.getSession().setAttribute("errorMsg", "Lỗi import tại dòng " + (i + 1) + ": " + importError);
-                        response.sendRedirect("dashboard");
-                        return;
-                    }
-                    successCount++;
-
-                    final String targetEmail = personalEmail;
-                    final String targetName = fullName;
-                    final String hmuEmail = newEmail;
-                    final String defaultPass = newPassword;
-                    final int threadDelay = successCount * 1000;
-
-                    new Thread(new Runnable() {
-                        @Override
-                        public void run() {
-                            try {
-                                Thread.sleep(threadDelay);
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
-                            }
-                            try {
-                                vn.edu.hmu.util.EmailService.sendWelcomeEmail(targetEmail, targetName, hmuEmail, defaultPass);
-                            } catch (Exception e) {
-                                System.out.println("Lỗi gửi email đến " + targetEmail + ": " + e.getMessage());
-                            }
-                        }
-                    }).start();
-
-                } catch (Exception ex) {
-                    request.getSession().setAttribute("errorMsg", "Lỗi đọc dòng " + (i + 1) + ": " + ex.getMessage());
-                    response.sendRedirect("dashboard");
-                    return;
+                } catch (Exception e) {
+                    errorCount++;
+                    errorDetails.add("Dòng " + (i + 1) + ": Lỗi định dạng - " + e.getMessage());
                 }
             }
 
-            // Lưu câu thông báo vào Session (bộ nhớ tạm)
-            request.getSession().setAttribute("successMsg", "✅ Đã import thành công " + successCount + " sinh viên!");
+            ActionLog summaryLog = new ActionLog();
+            summaryLog.setActionType("BATCH_IMPORT");
+            summaryLog.setTargetEmail(null);
+            summaryLog.setReason("Khởi tạo hàng loạt Excel M.01: " + successCount + " thành công, " + errorCount + " lỗi.");
             
-            // Chuyển hướng về lại dashboard theo đường link Servlet (thay vì foward thẳng vào jsp)
-            response.sendRedirect("dashboard");
+            StringBuilder detailsBuilder = new StringBuilder("[");
+            for (int i = 0; i < createdStudents.size(); i++) {
+                detailsBuilder.append("\"").append(createdStudents.get(i)).append("\"");
+                if (i < createdStudents.size() - 1) detailsBuilder.append(",");
+            }
+            detailsBuilder.append("]");
+            summaryLog.setDetails(detailsBuilder.toString());
+            
+            try {
+                summaryLog.setAdminId(Integer.parseInt(admin.getAdminID()));
+            } catch(Exception ignored) {}
+            adminDAO.insertActionLog(summaryLog);
+
+            StringBuilder finalMsg = new StringBuilder();
+            if (successCount > 0) {
+                finalMsg.append("Đã khởi tạo thành công ").append(successCount).append(" tài khoản từ file M.01!");
+            }
+            if (errorCount > 0) {
+                if (successCount > 0) finalMsg.append("<br>");
+                finalMsg.append("Có ").append(errorCount).append(" dòng lỗi:<br>");
+                for (String err : errorDetails) {
+                    finalMsg.append("- ").append(err).append("<br>");
+                }
+            }
+
+            if (successCount == 0 && errorCount > 0) {
+                request.getSession().setAttribute("errorMsg", finalMsg.toString());
+            } else if (successCount > 0) {
+                request.getSession().setAttribute("successMsg", finalMsg.toString());
+            }
 
         } catch (Exception e) {
             e.printStackTrace();
-            response.getWriter().println("Lỗi đọc file Excel: " + e.getMessage());
+            request.getSession().setAttribute("errorMsg", "Lỗi xử lý file Excel: " + e.getMessage());
         }
+
+        response.sendRedirect("dashboard");
     }
 
-    // Hàm hỗ trợ đọc Excel không bị lỗi sập app
     private String getSafeString(Cell cell) {
         if (cell == null) return "";
-        if (cell.getCellType() == CellType.STRING) {
-            return cell.getStringCellValue().trim();
-        }
-        if (cell.getCellType() == CellType.NUMERIC) {
-            if (DateUtil.isCellDateFormatted(cell)) {
-                return new java.text.SimpleDateFormat("yyyy-MM-dd").format(cell.getDateCellValue());
-            }
-            double value = cell.getNumericCellValue();
-            long longValue = (long) value;
-            if (value == longValue) {
-                return String.valueOf(longValue);
-            }
-            return String.valueOf(value);
-        }
-        if (cell.getCellType() == CellType.BOOLEAN) {
-            return String.valueOf(cell.getBooleanCellValue());
-        }
-        if (cell.getCellType() == CellType.FORMULA) {
-            switch (cell.getCachedFormulaResultType()) {
-                case STRING:
-                    return cell.getRichStringCellValue().getString().trim();
-                case NUMERIC:
-                    if (DateUtil.isCellDateFormatted(cell)) {
-                        return new java.text.SimpleDateFormat("yyyy-MM-dd").format(cell.getDateCellValue());
-                    }
-                    double value = cell.getNumericCellValue();
-                    long longValue = (long) value;
-                    if (value == longValue) {
-                        return String.valueOf(longValue);
-                    }
-                    return String.valueOf(value);
-                case BOOLEAN:
-                    return String.valueOf(cell.getBooleanCellValue());
-                default:
-                    return "";
-            }
-        }
-        return "";
-    }
-
-    private String normalizeDate(String dateStr) {
-        if (dateStr == null || dateStr.trim().isEmpty()) return "";
-        dateStr = dateStr.trim();
-        // Nếu đã đúng định dạng yyyy-MM-dd thì trả về luôn
-        if (dateStr.matches("^\\d{4}-\\d{2}-\\d{2}$")) return dateStr;
-
-        String[] formats = {"dd/MM/yyyy", "d/m/yyyy", "dd-MM-yyyy", "d-m-yyyy"};
-        for (String format : formats) {
-            try {
-                java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat(format);
-                sdf.setLenient(false);
-                java.util.Date date = sdf.parse(dateStr);
-                return new java.text.SimpleDateFormat("yyyy-MM-dd").format(date);
-            } catch (Exception ignored) {}
-        }
-        return dateStr;
-    }
-
-    private String validateImportRow(String studentId, String fullName, String gender,
-                                     String dateOfBirth, String className, String department,
-                                     String major, String cohort, String personalEmail) {
-        if (studentId.length() > 20) return "Mã SV quá dài (tối đa 20 ký tự).";
-        if (fullName.length() > 100) return "Họ tên quá dài (tối đa 100 ký tự).";
-        if (gender.length() > 10) return "Giới tính quá dài (tối đa 10 ký tự).";
-        if (dateOfBirth.length() > 15) return "Ngày sinh quá dài (tối đa 15 ký tự).";
-        if (className.length() > 30) return "Lớp quá dài (tối đa 30 ký tự).";
-        if (department.length() > 100) return "Khoa/Đơn vị quá dài (tối đa 100 ký tự).";
-        if (major.length() > 100) return "Ngành học quá dài (tối đa 100 ký tự).";
-        if (cohort.length() > 15) return "Niên khóa quá dài (tối đa 15 ký tự).";
-        if (personalEmail.length() > 120) return "Email cá nhân quá dài (tối đa 120 ký tự).";
-        return null;
+        DataFormatter formatter = new DataFormatter();
+        return formatter.formatCellValue(cell).trim();
     }
 }

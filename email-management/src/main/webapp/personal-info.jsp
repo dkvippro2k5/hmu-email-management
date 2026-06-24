@@ -44,32 +44,20 @@
                 <p><%= s.getFullName() %></p>
             </div>
             <div class="info-group">
-                <label>Ngày sinh</label>
-                <p><%= s.getDateOfBirth() %></p>
+                <label>CCCD / CMND</label>
+                <p><%= s.getCccd() != null ? s.getCccd() : "Chưa cập nhật" %></p>
             </div>
             <div class="info-group">
-                <label>Giới tính</label>
-                <p><%= s.getGender() %></p>
+                <label>Số điện thoại</label>
+                <p><%= s.getPhoneNumber() != null ? s.getPhoneNumber() : "Chưa cập nhật" %></p>
             </div>
             <div class="info-group">
-                <label>Lớp</label>
-                <p><%= s.getClassName() %></p>
+                <label>Niên Khóa</label>
+                <p><%= s.getCohort() != null ? s.getCohort() : "Chưa cập nhật" %></p>
             </div>
             <div class="info-group">
-                <label>Khoa</label>
-                <p><%= s.getDepartment() %></p>
-            </div>
-            <div class="info-group">
-                <label>Ngành học</label>
-                <p><%= s.getMajor() %></p>
-            </div>
-            <div class="info-group">
-                <label>Khóa</label>
-                <p><%= s.getCohort() %></p>
-            </div>
-            <div class="info-group" style="grid-column: span 2;">
-                <label>Email cá nhân</label>
-                <p><%= s.getPersonalEmail() %></p>
+                <label>Trạng thái</label>
+                <p>Hoạt động</p>
             </div>
         </div>
 

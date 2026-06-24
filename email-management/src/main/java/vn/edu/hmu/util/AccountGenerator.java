@@ -13,18 +13,21 @@ public class AccountGenerator {
         return pattern.matcher(temp).replaceAll("").replace("đ", "d").replace("Đ", "D");
     }
 
-    // Hàm 2: Sinh Email từ Họ tên và Mã SV
-    public static String generateEmail(String fullName, String studentId) {
-        String cleanName = removeAccent(fullName.trim().toLowerCase());
-        String[] words = cleanName.split("\\s+");
+    // Hàm 2: Sinh Email từ Tên, Họ đệm và Mã SV
+    public static String generateEmail(String firstName, String lastMiddleName, String studentId) {
+        String cleanFirstName = removeAccent(firstName.trim().toLowerCase());
+        String cleanLastName = removeAccent(lastMiddleName.trim().toLowerCase());
         
         StringBuilder emailPrefix = new StringBuilder();
-        // Lấy tên thật (từ cuối cùng)
-        emailPrefix.append(words[words.length - 1]); 
+        // Lấy tên thật
+        emailPrefix.append(cleanFirstName); 
         
-        // Lấy các chữ cái đầu của Họ và Tên đệm
-        for (int i = 0; i < words.length - 1; i++) {
-            emailPrefix.append(words[i].charAt(0));
+        // Lấy các chữ cái đầu của Họ đệm
+        String[] words = cleanLastName.split("\\s+");
+        for (String word : words) {
+            if (!word.isEmpty()) {
+                emailPrefix.append(word.charAt(0));
+            }
         }
         
         // Ghép với Mã SV và đuôi trường

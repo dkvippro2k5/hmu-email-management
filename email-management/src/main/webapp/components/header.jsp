@@ -122,7 +122,7 @@
             <% if (admin != null) { %>
                 <a href="<%= dashboardLink %>" class="login-btn">Vào hệ thống</a>
             <% } %>
-            <a href="logout" class="login-btn" style="background-color: #ef4444; margin-left: 10px;">Đăng xuất</a>
+            <a href="logout" class="login-btn" style="background-color: #ef4444; margin-left: 24px;">Đăng xuất</a>
         <% } else { %>
             <a href="login.jsp" class="login-btn">Đăng nhập</a>
         <% } %>

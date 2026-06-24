@@ -511,7 +511,9 @@ function suspendAccount(studentId) {
     .then(data => {
         if (data.success || data.status === "success") {
             showToast("Thành công: " + data.message, "success");
-            setTimeout(() => window.location.reload(), 1000);
+            triggerApiSearch();
+            triggerSuspendedApiSearch();
+            triggerRevokeApiSearch();
         } else {
             showToast("Lỗi: " + data.message, "error");
         }
@@ -535,7 +537,9 @@ function restoreAccount(studentId) {
         .then(data => {
             if (data.success || data.status === "success") {
                 showToast(data.message, 'success');
-                setTimeout(() => window.location.reload(), 1000);
+                triggerApiSearch();
+                triggerSuspendedApiSearch();
+                triggerRevokeApiSearch();
             } else {
                 showToast('Lỗi: ' + data.message, 'error');
             }
@@ -566,7 +570,9 @@ function deleteAccount(studentId) {
         .then(data => {
             if (data.success || data.status === "success") {
                 showToast(data.message, 'success');
-                setTimeout(() => window.location.reload(), 1000);
+                triggerApiSearch();
+                triggerSuspendedApiSearch();
+                triggerRevokeApiSearch();
             } else {
                 showToast('Lỗi: ' + data.message, 'error');
             }
@@ -628,7 +634,7 @@ function submitEdit() {
         if (data.success) {
             showToast(data.message, 'success');
             closeEditModal();
-            setTimeout(() => window.location.reload(), 1000);
+            triggerApiSearch();
         } else {
             showToast('Lỗi: ' + data.message, 'error');
         }
@@ -692,7 +698,7 @@ function submitCreate() {
         if (data.success) {
             showToast(data.message, 'success');
             closeCreateModal();
-            setTimeout(() => window.location.reload(), 1000);
+            triggerApiSearch();
         } else {
             showToast('Lỗi: ' + data.message, 'error');
         }

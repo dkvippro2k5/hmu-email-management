@@ -48,6 +48,7 @@ public class AdminDAO {
                 log.setTargetEmail(rs.getString("target_email"));
                 log.setActionType(rs.getString("action_type"));
                 log.setReason(rs.getString("reason"));
+                log.setDetails(rs.getString("details"));
                 log.setActionTime(rs.getTimestamp("action_time"));
                 logs.add(log);
             }
@@ -58,13 +59,14 @@ public class AdminDAO {
     }
 
     public boolean insertActionLog(ActionLog log) {
-        String sql = "INSERT INTO action_logs (admin_id, target_email, action_type, reason, action_time) VALUES (?, ?, ?, ?, NOW())";
+        String sql = "INSERT INTO action_logs (admin_id, target_email, action_type, reason, details, action_time) VALUES (?, ?, ?, ?, ?, NOW())";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, log.getAdminId());
             ps.setString(2, log.getTargetEmail());
             ps.setString(3, log.getActionType());
             ps.setString(4, log.getReason());
+            ps.setString(5, log.getDetails());
             return ps.executeUpdate() > 0;
         } catch (Exception e) {
             e.printStackTrace();
@@ -87,6 +89,7 @@ public class AdminDAO {
                 log.setTargetEmail(rs.getString("target_email"));
                 log.setActionType(rs.getString("action_type"));
                 log.setReason(rs.getString("reason"));
+                log.setDetails(rs.getString("details"));
                 log.setActionTime(rs.getTimestamp("action_time"));
                 logs.add(log);
             }

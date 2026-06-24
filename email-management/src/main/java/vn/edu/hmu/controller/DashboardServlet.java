@@ -51,8 +51,8 @@ public class DashboardServlet extends HttpServlet {
         int pendingRevokeAccounts = studentDAO.getPendingRevokeAccounts();
         int unreadSupportCount = supportDAO.getUnreadCount();
 
-        // Lay logs gan day (10 logs) cho dashboard
-        List<ActionLog> recentLogs = adminDAO.getRecentLogs(10);
+        // Lay logs gan day (20 logs) cho dashboard
+        List<ActionLog> recentLogs = adminDAO.getRecentLogs(20);
         // Lấy danh sách log nhiều hơn (ví dụ 100) cho tab Nhật ký hoạt động
         List<ActionLog> allLogs = adminDAO.getRecentLogs(100);
 

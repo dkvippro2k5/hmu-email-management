@@ -34,6 +34,9 @@ public class SuspendAccountServlet extends HttpServlet {
             out.flush();
             return;
         }
+        
+        // Bỏ regex validation khắt khe để admin có thể nhập các định dạng khác
+        // if (!decisionNumber.matches(".*\\/QĐ-ĐHYHN.*")) { ... }
 
         // 4. Gọi DAO cập nhật xuống Database
         StudentDAO dao = new StudentDAO();
@@ -41,6 +44,26 @@ public class SuspendAccountServlet extends HttpServlet {
         
         // 5. Trả kết quả về cho Frontend
         if (isSuccess) {
+            try {
+                vn.edu.hmu.model.ITAdmin admin = (vn.edu.hmu.model.ITAdmin) request.getSession().getAttribute("currentAdmin");
+                if (admin != null) {
+                    vn.edu.hmu.dao.AdminDAO adminDAO = new vn.edu.hmu.dao.AdminDAO();
+                    vn.edu.hmu.model.ActionLog log = new vn.edu.hmu.model.ActionLog();
+                    int safeAdminId = 1;
+                    try { if (admin.getAdminID() != null) safeAdminId = Integer.parseInt(admin.getAdminID()); } catch(Exception e) {}
+                    log.setAdminId(safeAdminId);
+                    vn.edu.hmu.model.EmailAccount acc = dao.getAccountByStudentId(studentId);
+                    log.setTargetEmail(acc != null ? acc.getEmailAddress() : studentId);
+                    log.setActionType("SUSPEND");
+                    log.setReason("Bảo lưu tài khoản thủ công. QĐ: " + decisionNumber);
+                    log.setDetails("Bảo lưu thành công cho mã SV: " + studentId);
+                    adminDAO.insertActionLog(log);
+                    
+                    vn.edu.hmu.dao.ArchiveDAO archiveDAO = new vn.edu.hmu.dao.ArchiveDAO();
+                    archiveDAO.insertArchiveM02("SUSPEND", decisionNumber, "Thủ công", "N/A", safeAdminId);
+                }
+            } catch(Exception ignored) {}
+
             out.print("{\"success\": true, \"message\": \"Khóa tài khoản thành công!\"}");
         } else {
             out.print("{\"success\": false, \"message\": \"Lỗi hệ thống: Không thể khóa tài khoản!\"}");
