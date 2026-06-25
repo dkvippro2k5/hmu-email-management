@@ -52,8 +52,8 @@ public class LoginServlet extends HttpServlet {
 
             // KIỂM TRA ĐĂNG NHẬP LẦN ĐẦU (CHƯA ĐỔI MẬT KHẨU PORTAL HOẶC CHƯA KÍCH HOẠT)
             if (acc.getStatus() == 0 || studentDao.isPortalPasswordNull(acc.getStudentId())) {
-                // Bắt buộc đổi mật khẩu Portal trước
-                response.sendRedirect("change-password.jsp"); 
+                // Yêu cầu nhập mật khẩu mới và SĐT
+                response.sendRedirect("first-login.jsp"); 
                 return;
             } 
             

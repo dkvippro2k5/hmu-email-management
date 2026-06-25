@@ -775,5 +775,4 @@ function testAutoActivation() {
         });
     }
 }
-function openExportModal() { document.getElementById('exportModal').classList.add('open'); }
-function closeExportModal() { document.getElementById('exportModal').classList.remove('open'); }
+

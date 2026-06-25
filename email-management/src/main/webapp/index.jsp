@@ -80,6 +80,17 @@
                 <p>Ngày đăng: 15/05/2026 - Cơ hội học tập và trải nghiệm môi trường y tế chuyên nghiệp tại châu Âu...</p>
             </div>
         </section>
+
+        <section class="news-section" style="margin-top: 30px; background: #e0f2fe; border-left: 4px solid var(--accent);">
+            <h2 style="border-bottom: none; color: var(--primary); margin-bottom: 10px;">Thông tin hỗ trợ & Liên hệ</h2>
+            <p style="margin-bottom: 15px; color: var(--text);">Nếu sinh viên gặp vấn đề về tài khoản email, không thể tự khôi phục mật khẩu hoặc cần hỗ trợ hệ thống, vui lòng liên hệ:</p>
+            <ul style="list-style: none; padding-left: 0; color: var(--text); line-height: 1.8;">
+                <li>📍 <strong>Hỗ trợ trực tiếp:</strong> Phòng CNTT (Phòng 319, Tầng 3, Nhà A1)</li>
+                <li>📞 <strong>Điện thoại:</strong> 024 38523798 (Máy lẻ: 3198)</li>
+                <li>✉️ <strong>Email hỗ trợ:</strong> support@hmu.edu.vn</li>
+                <li>🕒 <strong>Thời gian làm việc:</strong> Thứ 2 - Thứ 6 (Sáng: 8h00 - 11h30, Chiều: 13h30 - 16h30)</li>
+            </ul>
+        </section>
     </div>
 
     <footer>

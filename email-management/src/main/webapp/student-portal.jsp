@@ -212,7 +212,7 @@
             </div>
 
             <div class="footer">
-                Cần hỗ trợ? Truy cập <a href="support">Trung tâm trợ giúp IT</a> hoặc gửi yêu cầu.
+                Cần hỗ trợ? Trở về <a href="index.jsp">Trang chủ</a> để xem thông tin liên hệ phòng CNTT.
             </div>
         </div>
     </main>

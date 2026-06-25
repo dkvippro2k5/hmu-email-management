@@ -1378,67 +1378,7 @@ tr:hover td {
                 </div>
             </div>
         </div>
-        <div class="page" id="page-support">
-            <div class="page-header" style="margin-bottom: 20px;">
-                <div>
-                    <h2 class="page-title" style="margin-bottom: 20px;">Yêu cầu hỗ trợ</h2>
-                </div>
-            </div>
-            <div class="table-wrap">
-                <div class="table-scroll">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th style="width: 60px;">ID</th>
-                                <th>Sinh viên</th>
-                                <th>Chủ đề</th>
-                                <th>Nội dung</th>
-                                <th>Ngày gửi</th>
-                                <th>Trạng thái</th>
-                                <th style="text-align: right;">Thao tác</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <c:if test="${empty dsHoTro}">
-                                <tr>
-                                    <td colspan="7" style="text-align: center; color: var(--text3); padding: 40px;">
-                                        📭 Không có yêu cầu hỗ trợ nào.
-                                    </td>
-                                </tr>
-                            </c:if>
-                            <c:forEach items="${dsHoTro}" var="r">
-                                <tr>
-                                    <td class="mono">${r.requestId}</td>
-                                    <td><strong><c:out value="${empty r.studentName ? 'Không rõ' : r.studentName}"/></strong><br><span style="font-size: 12px; color: var(--text3);">${r.studentId}</span></td>
-                                    <td><strong>${r.subject}</strong></td>
-                                    <td style="max-width: 300px; white-space: normal;">${r.content}</td>
-                                    <td class="mono">${r.createdAt}</td>
-                                    <td>
-                                        <c:choose>
-                                            <c:when test="${r.status == 0}">
-                                                <span class="badge" style="background: rgba(245, 158, 11, 0.1); color: #b45309;">
-                                                    <span class="badge-dot" style="background: #f59e0b;"></span>Đang chờ
-                                                </span>
-                                            </c:when>
-                                            <c:otherwise>
-                                                <span class="badge" style="background: rgba(16, 185, 129, 0.1); color: #047857;">
-                                                    <span class="badge-dot" style="background: #10b981;"></span>Đã xử lý
-                                                </span>
-                                            </c:otherwise>
-                                        </c:choose>
-                                    </td>
-                                    <td style="text-align: right;">
-                                        <c:if test="${r.status == 0}">
-                                            <a href="admin-support?action=resolve&id=${r.requestId}" class="btn btn-success btn-sm">✅ Xác nhận xử lý</a>
-                                        </c:if>
-                                    </td>
-                                </tr>
-                            </c:forEach>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
+
 
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style="margin-right:6px;"><path d="M15.964.686a.5.5 0 0 0-.65-.65L.767 5.855H.766l-.452.18a.5.5 0 0 0-.082.887l.41.26.001.002 4.995 3.178 3.178 4.995.002.002.26.41a.5.5 0 0 0 .886-.083l6-15Zm-1.833 1.89L6.637 10.07l-.215-.338a.5.5 0 0 0-.154-.154l-.338-.215 7.494-7.494 1.178-.471-.47 1.178Z"/></svg>
                             Gửi Thông Báo
@@ -1620,10 +1560,9 @@ tr:hover td {
         </div>
     </div>
 
-
     <!-- ================= MODAL XUẤT EXCEL ================= -->
     <div class="modal-overlay" id="exportModal">
-        <div class="modal" style="max-width: 500px;">
+        <div class="modal-content" style="max-width: 500px;">
             <div class="modal-header">
                 <div class="modal-title">📥 Tùy chọn Xuất Excel</div>
                 <button class="modal-close" onclick="closeExportModal()">✕</button>

@@ -581,6 +581,19 @@ public class StudentDAO {
         }
     }
 
+    public boolean updateStudentPhone(String studentId, String phone) {
+        String sql = "UPDATE students SET phone_number = ? WHERE student_id = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, phone);
+            ps.setString(2, studentId);
+            return ps.executeUpdate() > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
     public boolean activateAccount(String email, String newPassword, String phone) {
         String sql = "UPDATE email_accounts SET password_hash = ?, status = 1, activation_date = NOW() WHERE email_address = ?";
         try (Connection conn = DBConnection.getConnection();

@@ -9,7 +9,7 @@ public class DBConnection {
     private static final String USER = "root"; 
     // Mật khẩu đã được loại bỏ khỏi mã nguồn để bảo mật.
     // Trong môi trường thực tế, nên sử dụng biến môi trường (Environment Variables) hoặc file cấu hình bên ngoài.
-    private static final String PASSWORD = System.getenv("DB_PASSWORD") != null ? System.getenv("DB_PASSWORD") : "28032005"; 
+    private static final String PASSWORD = System.getenv("DB_PASSWORD") != null ? System.getenv("DB_PASSWORD") : ""; 
 
     public static Connection getConnection() {
         Connection conn = null;

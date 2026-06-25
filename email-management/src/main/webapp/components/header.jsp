@@ -134,7 +134,6 @@
         <li><a href="index.jsp">Trang chủ</a></li>
         <li><a href="admissions.jsp">Tuyển sinh - Đào tạo</a></li>
         <li><a href="it-services">Hệ thống và dịch vụ CNTT</a></li>
-        <li><a href="support">Liên hệ hỗ trợ</a></li>
         <% if (user != null) { %>
             <li><a href="personal-info">Thông tin cá nhân</a></li>
             <li><a href="student-portal.jsp">Tài khoản Email</a></li>
