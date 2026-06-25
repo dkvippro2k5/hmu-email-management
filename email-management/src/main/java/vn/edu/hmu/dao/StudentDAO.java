@@ -554,18 +554,31 @@ public class StudentDAO {
     }
 
     public boolean isPortalPasswordNull(String studentId) {
-        String sql = "SELECT portal_password FROM students WHERE student_id = ?";
+        String sql = "SELECT portal_password, cccd FROM students WHERE student_id = ?";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, studentId);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    String pw = rs.getString("portal_password");
-                    return pw == null || pw.isEmpty();
+                    String pp = rs.getString("portal_password");
+                    String cccd = rs.getString("cccd");
+                    
+                    if (pp == null || pp.trim().isEmpty()) {
+                        return true;
+                    }
+                    
+                    // Nếu password đang là mã băm của CCCD (mặc định khi import), coi như chưa đổi
+                    try {
+                        if (cccd != null && !cccd.isEmpty() && org.mindrot.jbcrypt.BCrypt.checkpw(cccd, pp)) {
+                            return true;
+                        }
+                    } catch (Exception ignore) {}
+                    
+                    return false;
                 }
             }
         } catch (Exception e) { e.printStackTrace(); }
-        return false;
+        return true;
     }
 
     public boolean updatePortalPassword(String studentId, String hashedNewPassword) {
